@@ -1,164 +1,153 @@
 # dira-core
 
-**Telegram Mini App — Dira Climate Verification Infrastructure**
+**Dira — Climate Data, Verified on Midnight. Rewards Paid in Airtime.**
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Built with Next.js](https://img.shields.io/badge/Built_with-Next.js_14-black)](https://nextjs.org)
-[![Midnight Mainnet](https://img.shields.io/badge/Midnight-Mainnet-1A1A6E)](https://midnight.network)
-[![Open Source](https://img.shields.io/badge/Open_Source-Apache_2.0-green)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-teal.svg)](https://opensource.org/licenses/Apache-2.0)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
+[![Midnight](https://img.shields.io/badge/Midnight-Mainnet-1A1A6E.svg)](https://midnight.network/)
+[![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
-> *Your data earns your airtime. Your data grows your crops. Your data builds your safety net.*
+The Telegram Mini App for the Dira platform. Farmers use it to submit geo-tagged crop photos and receive AI-generated health reports. Data Agents use it to sync barometric pressure readings and earn Climate Tokens. Tokens are redeemable for mobile airtime, farm input vouchers, Dira Circle community cash, or M-Pesa.
+
+**Open to the world. Built for Kenya. Verified on Midnight.**
 
 ---
 
-## What Is Dira?
+## What this repository contains
 
-Dira (دائرة — Arabic for "circle") is a Decentralised Physical Infrastructure Network (DePIN) that turns the existing smartphone network into the most granular agricultural weather sensing layer in Sub-Saharan Africa.
-
-**The three problems Dira solves:**
-
-| Problem | Dira's Answer |
+| Path | Purpose |
 |---|---|
-| **Basis Risk** — satellite weather data resolves to 3–5 km squares; a farm in drought can sit next to a satellite-reported rain zone | Sub-100-metre atmospheric data from the human sensor network, ZK-verified on Midnight |
-| **Trust Gap** — less than 3% of smallholder farmers have ever successfully claimed an agricultural insurance payout | Circular economy: airtime rewards on Day 1, farm input vouchers in Month 1, Dira Circle cash pools in Month 2 |
-| **Liquidity Gap** — farmers cannot afford upfront premiums; insurers cannot price risk without historical micro-climate data | Climate Tokens earned through verified data contributions, redeemable immediately for real goods |
+| `/app/(farmer)/` | Farmer module — crop photo capture, health reports, submission history |
+| `/app/(agent)/` | Data Agent module — barometric sync, coverage map, leaderboard |
+| `/app/(shared)/` | Shared — wallet, four-layer redemption UI, settings |
+| `/app/onboarding/` | New user onboarding — language, role, farm/agent profile |
+| `/components/` | Reusable UI components |
+| `/lib/api/` | Typed API client for dira-api |
+| `/lib/i18n/` | English and Swahili translation strings |
+| `/lib/sensors/` | Barometric and GPS sensor utilities |
 
 ---
 
-## This Repository
+## Tech stack
 
-`dira-core` is the **Telegram Mini App** — the user-facing frontend. It runs inside Telegram's WebView and is the interface through which farmers submit geo-tagged crop photos and Data Agents sync barometric pressure readings.
-
-**Tech stack:**
-- Next.js 14 (App Router, TypeScript)
-- Telegram Web App SDK (`@twa-dev/sdk`)
-- Tailwind CSS (teal primary `#0A6E56`, navy Midnight accent `#1A1A6E`)
-- Leaflet.js (coverage maps)
-- i18n: English + Swahili
-
----
-
-## Repository Structure
-
-```
-dira-core/
-├── app/
-│   ├── (auth)/              # Telegram auth + onboarding
-│   ├── (farmer)/            # Farmer module: crop photos, health reports
-│   ├── (agent)/             # Data Agent module: barometric sync, leaderboard
-│   └── (shared)/            # Wallet, settings, notifications
-├── components/
-│   ├── ui/                  # Base UI primitives
-│   ├── wallet/              # Four-layer circular economy wallet UI
-│   └── maps/                # Leaflet coverage and farm maps
-├── lib/
-│   ├── api/                 # Typed API client (connects to dira-api)
-│   ├── i18n/                # English and Swahili translation files
-│   ├── sensors/             # Barometric sensor and GPS utilities
-│   └── types/               # Shared TypeScript types
-└── public/
-    └── assets/              # Icons, illustrations
-```
+- **Framework:** Next.js 14 (App Router, TypeScript)
+- **Hosting:** Deployed as a Telegram Mini App — opens inside the Telegram WebView via [@DiraBot](https://t.me/DiraBot)
+- **Styling:** Tailwind CSS — primary teal `#0A6E56`, secondary midnight `#1A1A6E`
+- **Maps:** Leaflet.js — coverage map and farm GPS location
+- **Auth:** Telegram Web App SDK — HMAC-SHA256 verified `initData`, no username/password
+- **Payments (Layer 1):** Africa's Talking — airtime disbursement from Day 1
+- **Payments (Layer 2):** Farm input voucher QR codes — redeemable at agro-dealer partners
+- **Payments (Layer 3):** Dira Circle — county-level community cash pool
+- **Payments (Layer 4):** Safaricom Daraja B2C — M-Pesa (flag-gated, activates Month 3–4)
+- **Storage:** Cloudflare R2 — crop photos uploaded directly from the client (pre-signed URLs)
 
 ---
 
-## The Circular Economy Wallet
-
-The wallet implements four redemption layers. Each layer has independent infrastructure — no single layer's failure affects the others:
-
-| Layer | Rate | Infrastructure Required | Available |
-|---|---|---|---|
-| ⚡ **Airtime** | 1 token = KES 0.55 | Africa's Talking API | Day 1 |
-| 🌱 **Farm Inputs** | Token QR voucher | Agro-dealer MOU + weekly bank transfer | Month 1 |
-| 👥 **Dira Circle** | 1 token = KES 0.50 (monthly pool) | One transfer per county per month | Month 2 |
-| 📱 **M-Pesa B2C** | 1 token = KES 0.50 | Daraja production credentials + float | Month 3–4 |
-
-The `DARAJA_PRODUCTION_ACTIVE` environment variable controls M-Pesa B2C activation. It defaults to `false`. Set it to `true` only when both Daraja production credentials are approved **and** first B2B API revenue has been received.
-
----
-
-## Local Development
+## Quick start
 
 ### Prerequisites
 
-```bash
-node --version  # 20 LTS required
-npm --version   # 9+
-```
+- Node.js ≥ 20.x
+- npm ≥ 10.x
+- A Telegram account (to test the Mini App flow)
 
-### Setup
+### Install
 
 ```bash
 git clone https://github.com/dira-africa/dira-core.git
 cd dira-core
 npm install
 cp .env.local.example .env.local
-# Fill in your values in .env.local
-npm run dev
+# Fill in your values — see .env.local.example for descriptions
 ```
 
-The app runs at `http://localhost:3000`.
-
-To test inside Telegram, use [ngrok](https://ngrok.com) to expose your local port and set the Mini App URL in BotFather to the ngrok URL.
-
-### Environment Variables
-
-Copy `.env.local.example` and fill in values:
+### Run locally
 
 ```bash
-# Telegram
-NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=DiraBot
-
-# API
-NEXT_PUBLIC_API_URL=http://localhost:3001
-
-# Feature flags (circular economy)
-NEXT_PUBLIC_VOUCHERS_ACTIVE=false
-NEXT_PUBLIC_DIRA_CIRCLE_ACTIVE=false
-NEXT_PUBLIC_DARAJA_ACTIVE=false
+npm run dev
+# App runs on http://localhost:3000
 ```
 
-> **Never** prefix secret values with `NEXT_PUBLIC_` — anything with that prefix is bundled into the JavaScript served to every user's browser.
+### Type check
+
+```bash
+npx tsc --noEmit
+# Must pass with zero errors before any commit
+```
+
+### Lint
+
+```bash
+npm run lint
+```
+
+### Test
+
+```bash
+npm test
+npm run test:coverage  # with coverage report
+```
 
 ---
 
-## Language Support
+## Environment variables
 
-The app supports English and Swahili from day one. Translation files live at `lib/i18n/en.ts` and `lib/i18n/sw.ts`. If you find a missing translation or an error in the Swahili, please open an issue or submit a pull request — community corrections are welcome.
+Copy `.env.local.example` to `.env.local`. All `NEXT_PUBLIC_` variables are safe to expose to the browser. Never put secrets in a `NEXT_PUBLIC_` variable.
+
+| Variable | Required | Description |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | Yes | dira-api base URL (`https://api.dira.africa` in production) |
+| `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | Yes | `DiraBot` |
+| `NEXT_PUBLIC_VOUCHERS_ACTIVE` | Yes | `false` until first agro-dealer MOU signed |
+| `NEXT_PUBLIC_DIRA_CIRCLE_ACTIVE` | Yes | `false` until first county coordinator confirmed |
+| `NEXT_PUBLIC_DARAJA_ACTIVE` | Yes | `false` until Daraja production credentials approved AND first B2B revenue received |
+
+**Never set `NEXT_PUBLIC_DARAJA_ACTIVE=true` in development.** This flag controls whether the M-Pesa redemption UI is shown to real users. It defaults to `false` and is activated only through a documented production process.
+
+---
+
+## Deployment
+
+Deployed via Coolify on Hetzner at `https://app.dira.africa`. Auto-deploys on push to `main`. See [`dira-docs`](https://github.com/dira-africa/dira-docs) for the full deployment guide.
 
 ---
 
 ## Contributing
 
-We welcome contributions from developers, agricultural scientists, and Swahili translators.
+We welcome contributions. Before you start, please read:
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Commit your changes: `git commit -m 'feat: describe your change'`
-4. Push to your branch: `git push origin feature/your-feature-name`
-5. Open a Pull Request against `main`
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — how to set up your environment, branch strategy, commit standards, PR process, code standards, security checklist, and testing requirements
+- **[CODE\_OF\_CONDUCT.md](CODE_OF_CONDUCT.md)** — how we treat each other in this community
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting. All contributions are accepted under the Apache 2.0 license.
+For security vulnerabilities, do **not** open a public issue. Email **security@dira.africa** instead.
 
 ---
 
-## Related Repositories
+## Community and support
 
-| Repository | Contents |
+| Channel | Purpose |
 |---|---|
-| [dira-api](https://github.com/dira-africa/dira-api) | Fastify backend API, AI verification engine, token ledger |
-| [dira-docs](https://github.com/dira-africa/dira-docs) | OpenAPI specifications, API documentation, impact reports |
-| [dira-contracts](https://github.com/dira-africa/dira-contracts) | Compact smart contracts for Midnight blockchain |
+| [GitHub Issues](https://github.com/dira-africa/dira-core/issues) | Bug reports and feature requests |
+| [GitHub Discussions](https://github.com/dira-africa/dira-core/discussions) | Architecture questions and ideas |
+| community@dira.africa | General inquiries |
+| security@dira.africa | Security vulnerabilities (private) |
+| conduct@dira.africa | Code of Conduct reports (private) |
 
 ---
 
-## License
+## Related repositories
 
-Copyright 2025 Dira Africa
-
-Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for the full text.
-
-The code is a gift to the world. The data, verified on Midnight, is the moat.
+| Repository | Description |
+|---|---|
+| [`dira-api`](https://github.com/dira-africa/dira-api) | Fastify backend API, AI verification, circular economy services |
+| [`dira-docs`](https://github.com/dira-africa/dira-docs) | OpenAPI specs, API documentation, reviewer guide |
+| [`dira-contracts`](https://github.com/dira-africa/dira-contracts) | Compact smart contracts for Midnight blockchain |
 
 ---
 
+## Licence
+
+Apache 2.0 — see [LICENSE](LICENSE).
+
+*Dira Africa Limited, 2025–2026.*
