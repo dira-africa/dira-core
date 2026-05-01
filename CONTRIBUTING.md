@@ -85,7 +85,7 @@ Check the [`good first issue`](https://github.com/dira-africa/dira-core/labels/g
 
 ### Improve documentation
 
-Documentation lives in `dira-docs`. API spec improvements, clearer README sections, Swahili translations, and the UNICEF reviewer guide are all high-impact contributions that require no backend knowledge.
+Documentation lives in `dira-docs`. API spec improvements, clearer README sections, Swahili translations, and the reviewer guide are all high-impact contributions that require no backend knowledge.
 
 ### Add or improve Swahili translations
 
@@ -338,7 +338,7 @@ Follow the same Conventional Commits format as commit messages:
 feat(voucher): add agro-dealer QR scan endpoint with replay protection
 fix(143): correct Kenyan phone number regex for Telkom numbers
 security: replace all cryptographic === comparisons with timingSafeEqual
-docs: add UNICEF reviewer guide for Midnight block explorer verification
+docs: add reviewer guide for Midnight block explorer verification
 ```
 
 ### PR description template
@@ -611,7 +611,7 @@ Documentation is a first-class contribution. The `dira-docs` repository is the r
 
 - The OpenAPI 3.0 specification (`openapi.yaml`)
 - The public API documentation (used by insurer and bank partners)
-- The UNICEF reviewer guide (how to independently verify data on Midnight)
+- The reviewer guide (how to independently verify data on Midnight)
 - The impact reports (quarterly, published as PDFs)
 - Setup and deployment guides
 
