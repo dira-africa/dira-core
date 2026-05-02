@@ -150,4 +150,4 @@ For security vulnerabilities, do **not** open a public issue. Email **security@d
 
 Apache 2.0 — see [LICENSE](LICENSE).
 
-*Dira Africa Limited, 2025–2026.*
+*Dira Africa Limited, 2026.*
