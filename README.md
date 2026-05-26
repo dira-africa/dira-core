@@ -97,7 +97,7 @@ Copy `.env.local.example` to `.env.local`. All `NEXT_PUBLIC_` variables are safe
 
 | Variable | Required | Description |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | Yes | dira-api base URL (`https://api.dira.africa` in production) |
+| `NEXT_PUBLIC_API_URL` | Yes | dira-api base URL (`https://api.diraafrica.org` in production) |
 | `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | Yes | `DiraBot` |
 | `NEXT_PUBLIC_VOUCHERS_ACTIVE` | Yes | `false` until first agro-dealer MOU signed |
 | `NEXT_PUBLIC_DIRA_CIRCLE_ACTIVE` | Yes | `false` until first county coordinator confirmed |
@@ -109,7 +109,7 @@ Copy `.env.local.example` to `.env.local`. All `NEXT_PUBLIC_` variables are safe
 
 ## Deployment
 
-Deployed via Coolify on Hetzner at `https://app.dira.africa`. Auto-deploys on push to `main`. See [`dira-docs`](https://github.com/dira-africa/dira-docs) for the full deployment guide.
+Deployed via Coolify on Hetzner at `https://app.diraafrica.org`. Auto-deploys on push to `main`. See [`dira-docs`](https://github.com/dira-africa/dira-docs) for the full deployment guide.
 
 ---
 
@@ -120,7 +120,7 @@ We welcome contributions. Before you start, please read:
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — how to set up your environment, branch strategy, commit standards, PR process, code standards, security checklist, and testing requirements
 - **[CODE\_OF\_CONDUCT.md](CODE_OF_CONDUCT.md)** — how we treat each other in this community
 
-For security vulnerabilities, do **not** open a public issue. Email **security@dira.africa** instead.
+For security vulnerabilities, do **not** open a public issue. Email **security@diraafrica.org** instead.
 
 ---
 
@@ -130,9 +130,9 @@ For security vulnerabilities, do **not** open a public issue. Email **security@d
 |---|---|
 | [GitHub Issues](https://github.com/dira-africa/dira-core/issues) | Bug reports and feature requests |
 | [GitHub Discussions](https://github.com/dira-africa/dira-core/discussions) | Architecture questions and ideas |
-| community@dira.africa | General inquiries |
-| security@dira.africa | Security vulnerabilities (private) |
-| conduct@dira.africa | Code of Conduct reports (private) |
+| community@diraafrica.org | General inquiries |
+| security@diraafrica.org | Security vulnerabilities (private) |
+| conduct@diraafrica.org | Code of Conduct reports (private) |
 
 ---
 
