@@ -69,6 +69,17 @@ npm run dev
 # App runs on http://localhost:3000
 ```
 
+### Testing as a Telegram Mini App
+
+To test inside the Telegram app:
+1. Expose your localhost server using a tunneling service (e.g., ngrok or Cloudflare Tunnels):
+   ```bash
+   ngrok http 3000
+   ```
+2. Create a test bot using Telegram's BotFather.
+3. Configure the bot's Menu Button or WebApp link to point to your secure HTTPS tunnel URL.
+4. Launch the WebApp inside Telegram!
+
 ### Type check
 
 ```bash
@@ -118,7 +129,7 @@ Deployed via Coolify on Hetzner at `https://app.diraafrica.org`. Auto-deploys on
 We welcome contributions. Before you start, please read:
 
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — how to set up your environment, branch strategy, commit standards, PR process, code standards, security checklist, and testing requirements
-- **[CODE\_OF\_CONDUCT.md](CODE_OF_CONDUCT.md)** — how we treat each other in this community
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — how we treat each other in this community
 
 For security vulnerabilities, do **not** open a public issue. Email **security@diraafrica.org** instead.
 
