@@ -7,7 +7,11 @@ export type TranslationKey =
   | "error.network"
   | "error.barometer"
   | "error.gps"
-  | "error.daraja";
+  | "error.daraja"
+  | "auth.authenticating"
+  | "auth.pleaseOpenTelegram"
+  | "auth.authFailed"
+  | "auth.retry";
 
 export const translations: Record<"en" | "sw", Record<TranslationKey, string>> = {
   en: {
@@ -20,6 +24,10 @@ export const translations: Record<"en" | "sw", Record<TranslationKey, string>> =
     "error.barometer": "Unable to access barometric sensor. Passive sync is unavailable.",
     "error.gps": "GPS location permission denied. Geo-tagged crops require active location services.",
     "error.daraja": "B2C M-Pesa cashout failed. The Daraja production gateway is currently inactive.",
+    "auth.authenticating": "Securing connection to Dira Network...",
+    "auth.pleaseOpenTelegram": "Please open this app inside Telegram to access the Dira Network.",
+    "auth.authFailed": "Authentication failed. Make sure you are using a valid Telegram account.",
+    "auth.retry": "Try Again",
   },
   sw: {
     "nav.onboarding": "Usajili",
@@ -31,5 +39,10 @@ export const translations: Record<"en" | "sw", Record<TranslationKey, string>> =
     "error.barometer": "Hatuwezi kusoma kipima hewa (barometer). Usawazishaji wa data hauwezekani.",
     "error.gps": "Ruhusa ya GPS imekataliwa. Picha za mazao zinahitaji huduma ya eneo ifanye kazi.",
     "error.daraja": "Ulipaji wa M-Pesa umefeli. Lango la uzalishaji la Daraja halijawashwa kwa sasa.",
+    "auth.authenticating": "Tunatengeneza muunganisho salama wa Dira...",
+    "auth.pleaseOpenTelegram": "Tafadhali fungua programu hii ndani ya Telegram ili kufikia Mtandao wa Dira.",
+    "auth.authFailed": "Uthibitishaji umefeli. Hakikisha unatumia akaunti halali ya Telegram.",
+    "auth.retry": "Jaribu Tena",
   },
 };
+
