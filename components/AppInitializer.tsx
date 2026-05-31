@@ -24,7 +24,7 @@ export default function AppInitializer({ children }: { children: React.ReactNode
 
   const handleRedirect = useCallback((user: User) => {
     if (user.isNewUser) {
-      if (pathname !== "/onboarding") {
+      if (!pathname.startsWith("/onboarding")) {
         router.push("/onboarding");
       } else {
         setStatus("authenticated");
