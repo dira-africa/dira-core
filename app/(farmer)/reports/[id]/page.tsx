@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-"use client";
+import ReportDetail from "@/components/ReportDetail";
 
-import FarmerDashboard from "@/components/FarmerDashboard";
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
 
-export default function FarmerHomePage() {
-  return <FarmerDashboard />;
+export default function FarmerReportDetailPage({ params }: PageProps) {
+  return <ReportDetail id={params.id} />;
 }

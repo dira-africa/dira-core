@@ -18,6 +18,6 @@
 
 import FarmerDashboard from "@/components/FarmerDashboard";
 
-export default function FarmerHomePage() {
+export default function FarmerHomeGeneralPage() {
   return <FarmerDashboard />;
 }

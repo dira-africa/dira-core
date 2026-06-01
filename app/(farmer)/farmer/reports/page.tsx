@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-"use client";
+import ReportsList from "@/components/ReportsList";
 
-import FarmerDashboard from "@/components/FarmerDashboard";
-
-export default function FarmerHomePage() {
-  return <FarmerDashboard />;
+export default function FarmerReportsFallbackPage() {
+  return <ReportsList />;
 }

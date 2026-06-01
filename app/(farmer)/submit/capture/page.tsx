@@ -16,8 +16,8 @@
 
 "use client";
 
-import FarmerDashboard from "@/components/FarmerDashboard";
+import SubmitCapture from "@/components/SubmitCapture";
 
-export default function FarmerHomePage() {
-  return <FarmerDashboard />;
+export default function CaptureGeneralPage() {
+  return <SubmitCapture />;
 }

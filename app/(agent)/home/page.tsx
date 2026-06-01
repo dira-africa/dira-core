@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-"use client";
+import AgentHomePage from "../agent/home/page";
 
-import FarmerDashboard from "@/components/FarmerDashboard";
-
-export default function FarmerHomePage() {
-  return <FarmerDashboard />;
-}
+export default AgentHomePage;

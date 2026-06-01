@@ -56,6 +56,12 @@ export default function AppInitializer({ children }: { children: React.ReactNode
     // Check if window is defined (client-side)
     if (typeof window === "undefined") return;
 
+    // Allow bypassing Telegram checks for the privacy policy page
+    if (pathname === "/privacy") {
+      setStatus("authenticated");
+      return;
+    }
+
     const customWindow = window as unknown as CustomWindow;
     const tgWebApp = customWindow.Telegram?.WebApp;
     const initData = tgWebApp?.initData;
@@ -77,7 +83,7 @@ export default function AppInitializer({ children }: { children: React.ReactNode
 
     // Otherwise, perform authentication
     runAuth();
-  }, [handleRedirect, runAuth]);
+  }, [handleRedirect, runAuth, pathname]);
 
   // Listen to pathname changes to complete redirection status
   useEffect(() => {

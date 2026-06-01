@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getOnboardingState, saveOnboardingState } from "@/lib/onboarding";
 import { apiClient } from "@/lib/api-client";
@@ -399,6 +400,27 @@ export default function FarmerProfileStep() {
               ))}
             </div>
           </div>
+
+          {/* Privacy Policy Disclosure */}
+          <p className="text-[10px] text-white/40 text-center leading-relaxed py-1">
+            {locale === "en" ? (
+              <>
+                By continuing, you agree to Dira&apos;s{" "}
+                <Link href="/privacy" className="text-primary hover:underline">
+                  Privacy Policy
+                </Link>{" "}
+                regarding farm GPS location.
+              </>
+            ) : (
+              <>
+                Kwa kuendelea, unakubaliana na{" "}
+                <Link href="/privacy" className="text-primary hover:underline">
+                  Sera ya Faragha
+                </Link>{" "}
+                ya Dira kuhusu eneo la GPS la shamba.
+              </>
+            )}
+          </p>
 
           {/* Submit Button */}
           <button

@@ -16,8 +16,15 @@
 
 "use client";
 
-import FarmerDashboard from "@/components/FarmerDashboard";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default function FarmerHomePage() {
-  return <FarmerDashboard />;
+export default function SubmitGeneralRedirect() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/submit/capture");
+  }, []);
+
+  return null;
 }
