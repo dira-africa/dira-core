@@ -56,8 +56,8 @@ export default function AppInitializer({ children }: { children: React.ReactNode
     // Check if window is defined (client-side)
     if (typeof window === "undefined") return;
 
-    // Allow bypassing Telegram checks for the privacy policy page
-    if (pathname === "/privacy") {
+    // Allow bypassing Telegram checks for the privacy policy page, public dashboard and admin interface
+    if (pathname === "/privacy" || pathname.startsWith("/admin") || pathname === "/public") {
       setStatus("authenticated");
       return;
     }
