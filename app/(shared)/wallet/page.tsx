@@ -411,7 +411,7 @@ export default function WalletPage() {
                   {t.ratesLabel} {rates ? rates.airtime.toFixed(2) : "0.55"}
                 </p>
               </div>
-              <Link href="/shared/redemptions/airtime">
+              <Link href="/wallet/redeem/airtime">
                 <button className="px-4 py-2 bg-[#0A6E56] hover:bg-[#085a46] active:scale-[0.98] rounded-xl text-xs font-black transition-all tracking-wider uppercase">
                   KOMBOA
                 </button>
@@ -443,7 +443,7 @@ export default function WalletPage() {
                 </p>
               </div>
               {isVouchersActive ? (
-                <Link href="/shared/redemptions/vouchers">
+                <Link href="/wallet/redeem/voucher">
                   <button className="px-4 py-2 bg-teal-600 hover:bg-teal-700 active:scale-[0.98] rounded-xl text-xs font-black transition-all tracking-wider uppercase">
                     KOMBOA
                   </button>
