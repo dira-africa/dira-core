@@ -1,15 +1,36 @@
 "use client";
 
+/*
+ * Copyright 2026 Blockchain & Climate Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getOnboardingState, saveOnboardingState, clearOnboardingState } from "@/lib/onboarding";
+import { apiClient } from "@/lib/api-client";
 
 export default function WelcomeStep() {
   const router = useRouter();
   const { locale } = useTranslation();
   const [userName, setUserName] = useState("");
   const [role, setRole] = useState<"farmer" | "agent" | null>(null);
+  
+  const [accepted, setAccepted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     const state = getOnboardingState();
@@ -34,15 +55,29 @@ export default function WelcomeStep() {
     router.push(`/onboarding/${prevStep}`);
   };
 
-  const handleGetStarted = () => {
-    // 1. Mark onboarding as complete in state
-    saveOnboardingState({ step: "complete" });
+  const handleGetStarted = async () => {
+    if (!accepted) return;
+    setLoading(true);
+    setErrorMsg("");
+    
+    try {
+      // Store consent timestamp in database (DPA 2019 requirement)
+      await apiClient.post("/api/auth/consent");
 
-    // 2. Clear state from localStorage (or retain 'complete' status)
-    clearOnboardingState();
+      // Mark onboarding as complete in state
+      saveOnboardingState({ step: "complete" });
 
-    // 3. Push to home screen based on role
-    router.push(role === "farmer" ? "/farmer/home" : "/agent/home");
+      // Clear state from localStorage
+      clearOnboardingState();
+
+      // Push to home screen based on role
+      router.push(role === "farmer" ? "/farmer/home" : "/agent/home");
+    } catch (err: any) {
+      console.error("Consent tracking registration failed:", err);
+      setErrorMsg(err.message || "Failed to record privacy policy consent. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,7 +120,7 @@ export default function WelcomeStep() {
         </div>
 
         {/* Starting Tokens Balance Card */}
-        <div className="bg-white/5 border border-white/5 rounded-2xl p-5 space-y-3 relative overflow-hidden">
+        <div className="bg-white/5 border border-white/5 rounded-2xl p-5 space-y-3 relative overflow-hidden text-center">
           <div className="absolute top-0 right-0 w-16 h-16 bg-primary/20 rounded-full blur-xl -z-10" />
           <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-none">
             {locale === "en" ? "Initial Balance" : "Salio la Kuanzia"}
@@ -111,12 +146,74 @@ export default function WelcomeStep() {
           </div>
         </div>
 
+        {/* Privacy Policy and Consent (Kenya DPA 2019) */}
+        <div className="bg-white/5 border border-white/5 rounded-2xl p-4 space-y-3 text-left">
+          <h3 className="text-xs font-bold text-primary tracking-widest uppercase">
+            {locale === "en" ? "Privacy Policy (Kenya DPA 2019)" : "Sera ya Faragha (DPA 2019)"}
+          </h3>
+          <div className="h-24 overflow-y-auto pr-1 text-[11px] text-white/50 space-y-2 border border-white/5 rounded-lg p-2 bg-black/10 scrollbar-thin scrollbar-thumb-white/10">
+            <p>
+              {locale === "en"
+                ? "Dira Africa is committed to protecting your personal data in accordance with the Kenya Data Protection Act 2019."
+                : "Dira Africa imejitolea kulinda data yako ya kibinafsi kwa mujibu wa Sheria ya Kulinda Data ya Kenya 2019."}
+            </p>
+            <p>
+              {locale === "en"
+                ? "We collect and store your mobile phone number securely encrypted using pgcrypto. This phone number is used exclusively to facilitate Climate Token redemptions (airtime, vouchers, cash pools, and M-Pesa payouts) and prevent double-spending."
+                : "Tunakusanya na kuhifadhi nambari yako ya simu ya rununu ikiwa imesimbwa kwa usalama kwa kutumia pgcrypto. Nambari hii inatumiwa tu kurahisisha ukoboaji wa Climate Tokens (salio la simu, vocha, na M-Pesa) na kuzuia matumizi mabaya."}
+            </p>
+            {role === "farmer" ? (
+              <p>
+                {locale === "en"
+                  ? "As a Farmer, we collect and analyze your crop photos and GPS coordinates to verify your agricultural yields and calculate token rewards."
+                  : "Kama Mkulima, tunakusanya na kuchambua picha zako za mazao na eneo la GPS ili kuthibitisha mazao yako na kukupatia zawadi za tokens."}
+              </p>
+            ) : (
+              <p>
+                {locale === "en"
+                  ? "As a Data Agent, we collect barometric pressure and GPS readings in the background to build Kenya's weather sensing network."
+                  : "Kama Data Agent, tunakusanya shinikizo la hewa na eneo la GPS kwa nyuma ili kujenga mtandao wa hali ya hewa wa Kenya."}
+              </p>
+            )}
+            <p>
+              {locale === "en"
+                ? "You have the right to access, export, or request deletion of your account. Deletion requests will anonymise your personal profile after a 30-day grace period, while retaining anonymised logs for financial audit."
+                : "Una haki ya kufikia, kusafirisha, au kuomba kufutwa kwa akaunti yako. Maombi ya kufuta yatabadilisha maelezo yako ya kibinafsi baada ya siku 30, huku tukihifadhi kumbukumbu zisizotambulika kwa ukaguzi wa kifedha."}
+            </p>
+          </div>
+
+          <label className="flex items-start space-x-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={accepted}
+              onChange={(e) => setAccepted(e.target.checked)}
+              className="mt-0.5 rounded border-white/20 bg-white/5 text-primary focus:ring-primary focus:ring-offset-[#0e0e26]"
+            />
+            <span className="text-[11px] leading-tight text-white/70 select-none">
+              {locale === "en"
+                ? "I accept the Dira Privacy Policy and consent to the secure collection of my phone number and sensor data."
+                : "Ninakubali Sera ya Faragha ya Dira na kutoa idhini ya kukusanywa kwa nambari yangu ya simu na data ya sensor."}
+            </span>
+          </label>
+        </div>
+
+        {errorMsg && (
+          <p className="text-xs font-semibold text-red-400">{errorMsg}</p>
+        )}
+
         {/* Action Button */}
         <button
           onClick={handleGetStarted}
-          className="w-full py-3 px-4 rounded-xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/95 transition-all transform hover:scale-[1.01] active:scale-[0.99] mt-2"
+          disabled={!accepted || loading}
+          className={`w-full py-3 px-4 rounded-xl font-bold text-sm shadow-lg transition-all transform mt-2 ${
+            accepted && !loading
+              ? "bg-primary text-white shadow-primary/20 hover:bg-primary/95 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              : "bg-white/10 text-white/40 cursor-not-allowed"
+          }`}
         >
-          {locale === "en" ? "Get Started" : "Anza Sasa"}
+          {loading
+            ? (locale === "en" ? "Processing..." : "Inachakatwa...")
+            : (locale === "en" ? "Get Started" : "Anza Sasa")}
         </button>
 
         {/* Progress bar */}

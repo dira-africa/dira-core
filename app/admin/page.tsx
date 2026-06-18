@@ -247,7 +247,9 @@ interface Distribution {
 interface Anchor {
   week_number: number;
   batch_hash: string;
-  midnight_tx_hash: string;
+  xion_tx_hash: string;
+  zkverify_proof_id: string;
+  zkverify_tx_hash: string;
   anchored_at: string;
 }
 
@@ -257,7 +259,9 @@ interface Certificate {
   county_code: string;
   condition_type: string;
   confidence_threshold: string;
-  midnight_tx_hash: string;
+  xion_tx_hash: string;
+  zkverify_proof_id: string;
+  zkverify_tx_hash: string;
   created_at: string;
 }
 
@@ -274,6 +278,61 @@ interface QueueStat {
   processingRate: string;
 }
 
+interface AgroDealer {
+  id: string;
+  dealer_name: string;
+  dealer_phone: string;
+  county_id: string;
+  mou_signed_at: string | null;
+  bank_account: string;
+  transaction_fee_pct: string | number;
+  active: boolean;
+  categories: string[];
+}
+
+interface AgroDealerReconciliation {
+  agro_dealer_id: string;
+  dealer_name: string;
+  dealer_phone: string;
+  county_id: string;
+  bank_account: string;
+  transaction_fee_pct: number;
+  total_tokens: number;
+  total_kes_value: number;
+  total_fee_retained: number;
+  total_kes_owed: number;
+}
+
+interface Coordinator {
+  id: string;
+  agent_id: string;
+  county_id: string;
+  mpesa_number: string;
+  active_from: string;
+  active: boolean;
+  agent_name: string;
+  agent_email: string;
+  agent_telegram: string | null;
+}
+
+interface DiraCirclePool {
+  county_id: string;
+  coordinator_id: string;
+  coordinator_name: string;
+  coordinator_mpesa: string;
+  total_tokens: number;
+  total_kes: number;
+  total_users: number;
+}
+
+interface AvailableAgent {
+  id: string;
+  full_name: string;
+  telegram_username: string | null;
+  email: string | null;
+  county: string;
+}
+
 export default function AdminPage() {
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -282,7 +341,7 @@ export default function AdminPage() {
   const [loginLoading, setLoginLoading] = useState(false);
 
   // Navigation state
-  const [activeTab, setActiveTab] = useState<"users" | "data-review" | "payments" | "circle" | "reports" | "jobs">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "data-review" | "payments" | "circle" | "agro-dealers" | "mpesa-activation" | "reports" | "jobs">("users");
 
   // Action feedback flags
   const [actionSuccessMsg, setActionSuccessMsg] = useState("");
@@ -370,6 +429,54 @@ export default function AdminPage() {
   });
 
   const [refKey, setRefKey] = useState<{ [key: string]: string }>({});
+
+  // ----------------------------------------------------
+  // MODULE 5: AGRO-DEALER MANAGEMENT STATE
+  // ----------------------------------------------------
+  const [agroDealers, setAgroDealers] = useState<AgroDealer[]>([]);
+  const [dealerReconciliations, setDealerReconciliations] = useState<AgroDealerReconciliation[]>([]);
+  const [newDealerForm, setNewDealerForm] = useState({
+    dealerName: "",
+    dealerPhone: "",
+    countyId: "Nairobi",
+    bankAccount: "",
+    transactionFeePct: 3.5,
+    categories: [] as string[],
+    mouSignedAt: ""
+  });
+  const [categoryInput, setCategoryInput] = useState("");
+  const [settleDealerId, setSettleDealerId] = useState<string | null>(null);
+  const [settleReference, setSettleReference] = useState("");
+
+  // ----------------------------------------------------
+  // MODULE 5: DIRA CIRCLE & COORDINATORS STATE
+  // ----------------------------------------------------
+  const [coordinators, setCoordinators] = useState<Coordinator[]>([]);
+  const [circlePools, setCirclePools] = useState<DiraCirclePool[]>([]);
+  const [availableAgents, setAvailableAgents] = useState<AvailableAgent[]>([]);
+  const [appointCounty, setAppointCounty] = useState("Nairobi");
+  const [selectedAppointAgentId, setSelectedAppointAgentId] = useState("");
+  const [appointMpesaNumber, setAppointMpesaNumber] = useState("");
+
+  // ----------------------------------------------------
+  // MODULE 5: MPESA ACTIVATION STATE
+  // ----------------------------------------------------
+  const [darajaProductionActive, setDarajaProductionActive] = useState<boolean | null>(null);
+  const [mpesaChecklist, setMpesaChecklist] = useState({
+    daraja_credentials_approved: false,
+    first_b2b_revenue_received: false
+  });
+  const [mpesaFailedRedemptions, setMpesaFailedRedemptions] = useState<Redemption[]>([]);
+  const [mpesaRetryLoadingId, setMpesaRetryLoadingId] = useState<string | null>(null);
+
+  // ----------------------------------------------------
+  // MODULE 5: TOKEN ECONOMIC ACTIVITY STATE (ANNEX A)
+  // ----------------------------------------------------
+  const [annexAStartDate, setAnnexAStartDate] = useState("");
+  const [annexAEndDate, setAnnexAEndDate] = useState("");
+  const [annexAReportData, setAnnexAReportData] = useState<any | null>(null);
+  const [annexALoading, setAnnexALoading] = useState(false);
+  const [annexAFormat, setAnnexAFormat] = useState<"json" | "csv">("csv");
 
   // Logout utility
   const handleLogout = useCallback(() => {
@@ -502,10 +609,45 @@ export default function AdminPage() {
         const res = await authenticatedFetch("/api/admin/circle/distributions");
         if (res) {
           const json = await res.json();
-          if (json.success) setDistributions(json.distributions);
+          if (json.success) setDistributions(json.distributions || []);
+        }
+        const coordRes = await authenticatedFetch("/api/admin/circle/coordinators");
+        if (coordRes) {
+          const json = await coordRes.json();
+          if (json.success) setCoordinators(json.coordinators || []);
+        }
+        const calcRes = await authenticatedFetch("/api/admin/circle/calculator");
+        if (calcRes) {
+          const json = await calcRes.json();
+          if (json.success) setCirclePools(json.pools || []);
+        }
+      } else if (activeTab === "agro-dealers") {
+        const dealersRes = await authenticatedFetch("/api/admin/agro-dealers");
+        if (dealersRes) {
+          const json = await dealersRes.json();
+          if (json.success) setAgroDealers(json.agroDealers || []);
+        }
+        const reconRes = await authenticatedFetch("/api/admin/agro-dealers/reconciliation");
+        if (reconRes) {
+          const json = await reconRes.json();
+          if (json.success) setDealerReconciliations(json.reconciliations || []);
+        }
+      } else if (activeTab === "mpesa-activation") {
+        const settingsRes = await authenticatedFetch("/api/admin/mpesa-settings");
+        if (settingsRes) {
+          const json = await settingsRes.json();
+          if (json.success) {
+            setDarajaProductionActive(json.darajaProductionActive);
+            setMpesaChecklist(json.settings || { daraja_credentials_approved: false, first_b2b_revenue_received: false });
+          }
+        }
+        const failedRes = await authenticatedFetch("/api/admin/financials?page=1&limit=50&status=failed");
+        if (failedRes) {
+          const json = await failedRes.json();
+          if (json.success) setMpesaFailedRedemptions(json.redemptions || json.failed || []);
         }
       } else if (activeTab === "reports") {
-        const res = await authenticatedFetch("/api/admin/midnight/status");
+        const res = await authenticatedFetch("/api/admin/xion-zkverify/status");
         if (res) {
           const json = await res.json();
           if (json.success) {
@@ -523,7 +665,22 @@ export default function AdminPage() {
     } catch (e) {
       console.error("Tab data loading failed:", e);
     }
-  }, [token, activeTab, authenticatedFetch, usersPage, usersLimit, usersSearch, usersRole, usersCounty, usersActive, usersStartDate, usersEndDate, finPage, finLimit, finStatusFilter]);
+  }, [
+    token,
+    activeTab,
+    authenticatedFetch,
+    usersPage,
+    usersLimit,
+    usersSearch,
+    usersRole,
+    usersCounty,
+    usersActive,
+    usersStartDate,
+    usersEndDate,
+    finPage,
+    finLimit,
+    finStatusFilter
+  ]);
 
   useEffect(() => {
     loadTabData();
@@ -887,7 +1044,7 @@ export default function AdminPage() {
     setActionLoading(true);
 
     try {
-      const res = await authenticatedFetch("/api/admin/midnight/anchor", { method: "POST" });
+      const res = await authenticatedFetch("/api/admin/xion-zkverify/anchor", { method: "POST" });
       if (res) {
         const data = await res.json();
         if (res.ok) {
@@ -911,7 +1068,7 @@ export default function AdminPage() {
     setActionLoading(true);
 
     try {
-      const res = await authenticatedFetch("/api/admin/midnight/certificate", {
+      const res = await authenticatedFetch("/api/admin/xion-zkverify/certificate", {
         method: "POST",
         body: JSON.stringify({
           countyCode: certForm.countyCode.trim().toUpperCase(),
@@ -942,6 +1099,319 @@ export default function AdminPage() {
       setActionErrorMsg(e.message || "Error executing certificate Smart Contract transaction.");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  // ----------------------------------------------------
+  // MODULE 5 DYNAMIC HANDLERS & EFFECTS
+  // ----------------------------------------------------
+  const loadAvailableAgents = useCallback(async (county: string) => {
+    if (!token) return;
+    try {
+      const res = await authenticatedFetch(`/api/admin/circle/agents?county=${county}`);
+      if (res) {
+        const json = await res.json();
+        if (json.success) {
+          setAvailableAgents(json.agents || []);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load available agents:", e);
+    }
+  }, [token, authenticatedFetch]);
+
+  useEffect(() => {
+    if (activeTab === "circle" && appointCounty) {
+      loadAvailableAgents(appointCounty);
+    }
+  }, [activeTab, appointCounty, loadAvailableAgents]);
+
+  const handleAppointCoordinator = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAppointAgentId || !appointMpesaNumber) {
+      setActionErrorMsg("Please select an agent and provide an M-Pesa number.");
+      return;
+    }
+    setActionLoading(true);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+    try {
+      const res = await authenticatedFetch("/api/admin/circle/coordinators", {
+        method: "POST",
+        body: JSON.stringify({
+          agentId: selectedAppointAgentId,
+          countyId: appointCounty,
+          mpesaNumber: appointMpesaNumber
+        })
+      });
+      if (res) {
+        const json = await res.json();
+        if (json.success) {
+          setActionSuccessMsg(json.message || "Successfully appointed county coordinator.");
+          setSelectedAppointAgentId("");
+          setAppointMpesaNumber("");
+          loadTabData();
+        } else {
+          setActionErrorMsg(json.error?.message || "Failed to appoint coordinator.");
+        }
+      }
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "Failed to appoint coordinator.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleTriggerMonthlyPool = async (countyId: string) => {
+    setActionLoading(true);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+    try {
+      const res = await authenticatedFetch("/api/admin/circle/distributions", {
+        method: "POST",
+        body: JSON.stringify({ countyId })
+      });
+      if (res) {
+        const json = await res.json();
+        if (json.success) {
+          setActionSuccessMsg(json.message || `Successfully processed monthly pool for ${countyId}.`);
+          loadTabData();
+        } else {
+          setActionErrorMsg(json.error?.message || "Failed to process monthly pool.");
+        }
+      }
+    } catch (e: any) {
+      setActionErrorMsg(e.message || "Failed to process monthly pool.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDownloadTransferInstructions = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/admin/circle/distributions/export-instructions`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        throw new Error("Failed to download CSV.");
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "circle-transfer-instructions.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setActionSuccessMsg("Instructions CSV downloaded successfully.");
+    } catch (e: any) {
+      setActionErrorMsg(e.message || "Failed to download instructions.");
+    }
+  };
+
+  const handleCreateAgroDealer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { dealerName, dealerPhone, countyId, bankAccount, transactionFeePct, categories, mouSignedAt } = newDealerForm;
+    if (!dealerName || !dealerPhone || !countyId || !bankAccount) {
+      setActionErrorMsg("Please fill in all required agro-dealer fields.");
+      return;
+    }
+    setActionLoading(true);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+    try {
+      const res = await authenticatedFetch("/api/admin/agro-dealers", {
+        method: "POST",
+        body: JSON.stringify({
+          dealerName,
+          dealerPhone,
+          countyId,
+          bankAccount,
+          transactionFeePct: Number(transactionFeePct),
+          categories,
+          mouSignedAt: mouSignedAt || undefined
+        })
+      });
+      if (res) {
+        const json = await res.json();
+        if (json.success) {
+          setActionSuccessMsg(json.message || "Agro-dealer created successfully.");
+          setNewDealerForm({
+            dealerName: "",
+            dealerPhone: "",
+            countyId: "Nairobi",
+            bankAccount: "",
+            transactionFeePct: 3.5,
+            categories: [],
+            mouSignedAt: ""
+          });
+          setCategoryInput("");
+          loadTabData();
+        } else {
+          setActionErrorMsg(json.error?.message || "Failed to create agro-dealer.");
+        }
+      }
+    } catch (e: any) {
+      setActionErrorMsg(e.message || "Failed to create agro-dealer.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSettleAgroDealerVouchers = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!settleDealerId || !settleReference.trim()) {
+      setActionErrorMsg("Please provide a settlement reference.");
+      return;
+    }
+    setActionLoading(true);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+    try {
+      const res = await authenticatedFetch(`/api/admin/agro-dealers/reconciliation/${settleDealerId}/settle`, {
+        method: "PATCH",
+        body: JSON.stringify({ settlementReference: settleReference })
+      });
+      if (res) {
+        const json = await res.json();
+        if (json.success) {
+          setActionSuccessMsg(json.message || "Successfully settled vouchers.");
+          setSettleDealerId(null);
+          setSettleReference("");
+          loadTabData();
+        } else {
+          setActionErrorMsg(json.error?.message || "Failed to settle vouchers.");
+        }
+      }
+    } catch (e: any) {
+      setActionErrorMsg(e.message || "Failed to settle vouchers.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDownloadReconciliationCSV = (recon: AgroDealerReconciliation) => {
+    let csv = "Agro-Dealer Reconciliation Report\n";
+    csv += `Dealer Name,${recon.dealer_name}\n`;
+    csv += `Dealer Phone,${recon.dealer_phone}\n`;
+    csv += `County,${recon.county_id}\n`;
+    csv += `Bank Account,${recon.bank_account}\n`;
+    csv += `Transaction Fee Percentage,${recon.transaction_fee_pct}%\n`;
+    csv += "\nSummary Data\n";
+    csv += `Total Tokens Redeemed,${recon.total_tokens}\n`;
+    csv += `Total KES Value,${recon.total_kes_value.toFixed(2)}\n`;
+    csv += `Dira retained fee,${recon.total_fee_retained.toFixed(2)}\n`;
+    csv += `Net KES Owed,${recon.total_kes_owed.toFixed(2)}\n`;
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `reconciliation-${recon.dealer_name.replace(/\s+/g, "_")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleToggleMpesaSetting = async (key: string, currentValue: boolean) => {
+    setActionLoading(true);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+    try {
+      const res = await authenticatedFetch("/api/admin/mpesa-settings", {
+        method: "PATCH",
+        body: JSON.stringify({ key, value: !currentValue })
+      });
+      if (res) {
+        const json = await res.json();
+        if (json.success) {
+          setMpesaChecklist(prev => ({ ...prev, [key]: !currentValue }));
+          setActionSuccessMsg(json.message || `Successfully updated ${key}.`);
+        } else {
+          setActionErrorMsg(json.error?.message || `Failed to update ${key}.`);
+        }
+      }
+    } catch (e: any) {
+      setActionErrorMsg(e.message || "Failed to update setting.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRetryMpesaRedemption = async (id: string) => {
+    setMpesaRetryLoadingId(id);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+    try {
+      const res = await authenticatedFetch(`/api/admin/redemptions/${id}/retry`, {
+        method: "POST"
+      });
+      if (res) {
+        const json = await res.json();
+        if (json.success) {
+          setActionSuccessMsg(json.message || "Manual retry successfully triggered.");
+          loadTabData();
+        } else {
+          setActionErrorMsg(json.error?.message || "Failed to retry M-Pesa redemption.");
+        }
+      }
+    } catch (e: any) {
+      setActionErrorMsg(e.message || "Failed to retry redemption.");
+    } finally {
+      setMpesaRetryLoadingId(null);
+    }
+  };
+
+  const handleDownloadAnnexAReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    setAnnexALoading(true);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+    try {
+      const params = new URLSearchParams({
+        format: annexAFormat,
+        ...(annexAStartDate && { startDate: annexAStartDate }),
+        ...(annexAEndDate && { endDate: annexAEndDate })
+      });
+
+      if (annexAFormat === "csv") {
+         const res = await fetch(`${API_URL}/api/admin/reports/token-economic-activity?${params.toString()}`, {
+           headers: {
+             "Authorization": `Bearer ${token}`
+           }
+         });
+         if (!res.ok) {
+           throw new Error("Failed to download CSV.");
+         }
+         const blob = await res.blob();
+         const url = window.URL.createObjectURL(blob);
+         const a = document.createElement("a");
+         a.href = url;
+         a.download = "token-economic-activity-annex-a.csv";
+         document.body.appendChild(a);
+         a.click();
+         a.remove();
+         setActionSuccessMsg("Annex A CSV downloaded successfully.");
+      } else {
+        const res = await authenticatedFetch(`/api/admin/reports/token-economic-activity?${params.toString()}`);
+        if (res) {
+          const json = await res.json();
+          if (json.success) {
+            setAnnexAReportData(json);
+            setActionSuccessMsg("Annex A JSON data loaded.");
+          } else {
+            setActionErrorMsg(json.error?.message || "Failed to load report data.");
+          }
+        }
+      }
+    } catch (e: any) {
+      setActionErrorMsg(e.message || "Failed to run report.");
+    } finally {
+      setAnnexALoading(false);
     }
   };
 
@@ -1065,8 +1535,10 @@ export default function AdminPage() {
             { id: "users", label: "Users" },
             { id: "data-review", label: "Data Review Queue" },
             { id: "payments", label: "Financial Dashboard" },
-            { id: "circle", label: "County Payouts" },
-            { id: "reports", label: "Midnight & Partner Reports" },
+            { id: "circle", label: "County Payouts (Circle)" },
+            { id: "agro-dealers", label: "Agro-Dealers" },
+            { id: "mpesa-activation", label: "M-Pesa Activation" },
+            { id: "reports", label: "XION & Partner Reports" },
             { id: "jobs", label: "Background Workers" }
           ].map((tab) => (
             <button
@@ -1607,84 +2079,681 @@ export default function AdminPage() {
                 </div>
 
               </div>
+            </div>
+          )}
 
+            {/* --------------------------------------------------
+              TAB 4: COUNTY CIRCULAR ECONOMY DISTRIBUTIONS (DIRA CIRCLE)
+              -------------------------------------------------- */}
+          {activeTab === "circle" && (
+            <div className="space-y-8">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-4">
+                <div className="space-y-1">
+                  <h2 className="text-md font-bold text-white/90">Dira Circle Distribution Controls</h2>
+                  <p className="text-xs text-white/50">Manage county coordinators, monthly cashout pools, and confirm transfers.</p>
+                </div>
+                <button
+                  onClick={handleDownloadTransferInstructions}
+                  className="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all flex items-center gap-2 self-start md:self-auto font-mono"
+                >
+                  📥 Export Instructions CSV
+                </button>
+              </div>
+
+              {/* Coordinator Appointing Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1 bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
+                  <h3 className="text-sm font-bold text-white">Appoint County Coordinator</h3>
+                  <form onSubmit={handleAppointCoordinator} className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/50">Target County</label>
+                      <select
+                        value={appointCounty}
+                        onChange={(e) => setAppointCounty(e.target.value)}
+                        className="w-full bg-[#0a0a23] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white"
+                      >
+                        {["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Kakamega", "Meru", "Nyeri", "Garissa", "Mandera"].map(c => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/50">Select Agent</label>
+                      {availableAgents.length === 0 ? (
+                        <p className="text-[10px] text-amber-400/70 p-2 bg-amber-500/5 rounded-xl border border-amber-500/10">
+                          No available Data Agents in {appointCounty}
+                        </p>
+                      ) : (
+                        <select
+                          value={selectedAppointAgentId}
+                          onChange={(e) => setSelectedAppointAgentId(e.target.value)}
+                          className="w-full bg-[#0a0a23] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white"
+                        >
+                          <option value="">-- Choose Agent --</option>
+                          {availableAgents.map(a => (
+                            <option key={a.id} value={a.id}>{a.full_name} (@{a.telegram_username || "no_username"})</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/50">M-Pesa Cashout Phone Number</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 254712345678"
+                        required
+                        value={appointMpesaNumber}
+                        onChange={(e) => setAppointMpesaNumber(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white font-mono"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={actionLoading || !selectedAppointAgentId}
+                      className="w-full py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs disabled:opacity-50 transition-all shadow-md shadow-primary/20"
+                    >
+                      Appoint Coordinator
+                    </button>
+                  </form>
+                </div>
+
+                <div className="lg:col-span-2 bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
+                  <h3 className="text-sm font-bold text-white">Appointed County Coordinators Directory</h3>
+                  <div className="overflow-x-auto border border-white/10 rounded-xl">
+                    <table className="w-full text-[11px] text-left border-collapse font-mono">
+                      <thead>
+                        <tr className="border-b border-white/10 text-white/40 bg-white/[0.01]">
+                          <th className="p-3">Coordinator Name</th>
+                          <th className="p-3">County</th>
+                          <th className="p-3">M-Pesa Number</th>
+                          <th className="p-3">Appointed Date</th>
+                          <th className="p-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5 text-white/70">
+                        {coordinators.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-4 text-center text-white/30">No county coordinators appointed yet.</td>
+                          </tr>
+                        ) : (
+                          coordinators.map((c) => (
+                            <tr key={c.id} className="hover:bg-white/[0.01]">
+                              <td className="p-3">
+                                <div className="font-semibold text-white">{c.agent_name}</div>
+                                <div className="text-[9px] text-white/40">{c.agent_email} • @{c.agent_telegram || "—"}</div>
+                              </td>
+                              <td className="p-3 font-bold text-primary">{c.county_id}</td>
+                              <td className="p-3 text-white/80">{c.mpesa_number}</td>
+                              <td className="p-3 text-white/40">{new Date(c.active_from).toLocaleDateString()}</td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${c.active ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-white/30"}`}>
+                                  {c.active ? "ACTIVE" : "INACTIVE"}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Calculator & Settlements Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Monthly Pool Calculator */}
+                <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
+                  <h3 className="text-sm font-bold text-white">Monthly County Pool Calculator</h3>
+                  <div className="overflow-x-auto border border-white/10 rounded-xl">
+                    <table className="w-full text-[11px] text-left border-collapse font-mono">
+                      <thead>
+                        <tr className="border-b border-white/10 text-white/40 bg-white/[0.01]">
+                          <th className="p-3">County</th>
+                          <th className="p-3">Coordinator</th>
+                          <th className="p-3">Tokens Pending</th>
+                          <th className="p-3">Cash Value</th>
+                          <th className="p-3 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5 text-white/70">
+                        {circlePools.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-4 text-center text-white/30">No active county pools computed.</td>
+                          </tr>
+                        ) : (
+                          circlePools.map((p) => (
+                            <tr key={p.county_id} className="hover:bg-white/[0.01]">
+                              <td className="p-3 font-bold text-white">{p.county_id}</td>
+                              <td className="p-3">
+                                <div>{p.coordinator_name}</div>
+                                <div className="text-[9px] text-white/40">{p.coordinator_mpesa}</div>
+                              </td>
+                              <td className="p-3 font-semibold text-amber-400">{p.total_tokens.toLocaleString()}</td>
+                              <td className="p-3 font-bold text-emerald-400">KES {parseFloat(String(p.total_kes)).toFixed(2)}</td>
+                              <td className="p-3 text-right">
+                                <button
+                                  onClick={() => handleTriggerMonthlyPool(p.county_id)}
+                                  disabled={actionLoading || p.total_kes === 0}
+                                  className="px-3 py-1 rounded bg-primary hover:bg-primary/95 text-white font-bold text-[10px] disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  Trigger Pool
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Distributions Settlement Directory */}
+                <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
+                  <h3 className="text-sm font-bold text-white">Aggregated Payout Logs</h3>
+                  <div className="overflow-x-auto border border-white/10 rounded-xl">
+                    <table className="w-full text-[11px] text-left border-collapse font-mono">
+                      <thead>
+                        <tr className="border-b border-white/10 text-white/40 bg-white/[0.01]">
+                          <th className="p-3">County / Period</th>
+                          <th className="p-3">Coordinator Payout</th>
+                          <th className="p-3">Ref Code</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3 text-right">Settle Payout</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5 text-white/70">
+                        {distributions.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-4 text-center text-white/30">No monthly distribution logs found.</td>
+                          </tr>
+                        ) : (
+                          distributions.map((d) => (
+                            <tr key={d.id} className="hover:bg-white/[0.01]">
+                              <td className="p-3">
+                                <div className="font-bold text-white">{d.county_id}</div>
+                                <div className="text-[9px] text-white/40">{new Date(d.period_month).toLocaleDateString(undefined, { month: "short", year: "numeric" })}</div>
+                              </td>
+                              <td className="p-3">
+                                <div className="font-bold text-emerald-400">KES {parseFloat(d.total_kes_disbursed).toFixed(2)}</div>
+                                <div className="text-[9px] text-white/40">{d.coordinator_name}</div>
+                              </td>
+                              <td className="p-3 text-white/60 font-mono">{d.transfer_reference || "—"}</td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${d.status === "completed" ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
+                                  {d.status.toUpperCase()}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right">
+                                {d.status === "pending" ? (
+                                  <div className="flex items-center justify-end space-x-1.5">
+                                    <input
+                                      type="text"
+                                      placeholder="M-Pesa Ref"
+                                      value={refKey[d.id] || ""}
+                                      onChange={(e) => setRefKey({ ...refKey, [d.id]: e.target.value })}
+                                      className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white placeholder-white/20 focus:outline-none focus:border-primary/50 max-w-[80px]"
+                                    />
+                                    <button
+                                      onClick={() => handleConfirmDistribution(d.id)}
+                                      disabled={actionLoading}
+                                      className="px-2.5 py-1 rounded bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] disabled:opacity-50"
+                                    >
+                                      Mark Paid
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span className="text-[9px] text-white/30 font-bold uppercase">Settled</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
           {/* --------------------------------------------------
-              TAB 4: COUNTY CIRCULAR ECONOMY DISTRIBUTIONS
+              TAB 4B: AGRO-DEALER PARTNER ECOSYSTEM
               -------------------------------------------------- */}
-          {activeTab === "circle" && (
-            <div className="space-y-6">
-              <div className="space-y-1">
-                <h2 className="text-md font-bold text-white/90">Dira Circle County Pool Distributions</h2>
-                <p className="text-xs text-white/50">Review monthly community aggregated payouts and issue bank transfers to county coordinators.</p>
+          {activeTab === "agro-dealers" && (
+            <div className="space-y-8">
+              <div className="space-y-1 border-b border-white/5 pb-4">
+                <h2 className="text-md font-bold text-white/90">Agro-Dealer Management</h2>
+                <p className="text-xs text-white/50">Add new retail partners, configure fee models, and settle weekly vouchers.</p>
               </div>
 
-              <div className="overflow-x-auto border border-white/10 rounded-2xl bg-black/20">
-                <table className="w-full text-xs text-left border-collapse font-mono">
-                  <thead>
-                    <tr className="border-b border-white/10 text-white/50 bg-white/[0.01]">
-                      <th className="p-4 font-semibold">Distribution ID</th>
-                      <th className="p-4 font-semibold">County</th>
-                      <th className="p-4 font-semibold">Coordinator</th>
-                      <th className="p-4 font-semibold">Period</th>
-                      <th className="p-4 font-semibold">Aggregated Payout</th>
-                      <th className="p-4 font-semibold">Receipt / Reference</th>
-                      <th className="p-4 font-semibold">Status</th>
-                      <th className="p-4 font-semibold">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-white/80">
-                    {distributions.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} className="p-8 text-center text-white/30">No monthly Dira Circle distributions found.</td>
-                      </tr>
-                    ) : (
-                      distributions.map((d) => (
-                        <tr key={d.id} className="hover:bg-white/[0.01]">
-                          <td className="p-4 text-white/40">{d.id}</td>
-                          <td className="p-4 font-semibold text-white/95">{d.county_id}</td>
-                          <td className="p-4 text-white/70">{d.coordinator_name}</td>
-                          <td className="p-4 text-white/40">{new Date(d.period_month).toLocaleDateString(undefined, { month: "short", year: "numeric" })}</td>
-                          <td className="p-4 font-bold text-emerald-400">KES {parseFloat(d.total_kes_disbursed).toFixed(2)}</td>
-                          <td className="p-4 text-white/60">{d.transfer_reference || "—"}</td>
-                          <td className="p-4 font-bold text-[10px]">
-                            <span className={`px-2 py-0.5 rounded ${
-                              d.status === "completed"
-                                ? "bg-emerald-500/10 text-emerald-400"
-                                : "bg-amber-500/10 text-amber-400"
-                            }`}>
-                              {d.status.toUpperCase()}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            {d.status === "pending" ? (
-                              <div className="flex items-center space-x-2">
-                                <input
-                                  type="text"
-                                  placeholder="Tx Ref Code (e.g. B2345X...)"
-                                  value={refKey[d.id] || ""}
-                                  onChange={(e) => setRefKey({ ...refKey, [d.id]: e.target.value })}
-                                  className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-primary/50"
-                                />
-                                <button
-                                  onClick={() => handleConfirmDistribution(d.id)}
-                                  disabled={actionLoading}
-                                  className="px-3.5 py-1.5 rounded-lg bg-primary hover:bg-primary/95 text-white font-bold text-[10px] disabled:opacity-50"
-                                >
-                                  Mark Paid
-                                </button>
-                              </div>
-                            ) : (
-                              <span className="text-[10px] text-white/30 font-bold uppercase">Settled</span>
-                            )}
-                          </td>
+              {/* Agro-Dealer Registration Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1 bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
+                  <h3 className="text-sm font-bold text-white">Register Partner Agro-Dealer</h3>
+                  <form onSubmit={handleCreateAgroDealer} className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/50">Agro-Dealer Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Kenya Seed Agro-dealers"
+                        required
+                        value={newDealerForm.dealerName}
+                        onChange={(e) => setNewDealerForm({ ...newDealerForm, dealerName: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-white/50">Contact Phone</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 254711999999"
+                          required
+                          value={newDealerForm.dealerPhone}
+                          onChange={(e) => setNewDealerForm({ ...newDealerForm, dealerPhone: e.target.value })}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white font-mono"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-white/50">MOU County</label>
+                        <select
+                          value={newDealerForm.countyId}
+                          onChange={(e) => setNewDealerForm({ ...newDealerForm, countyId: e.target.value })}
+                          className="w-full bg-[#0a0a23] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white"
+                        >
+                          {["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Kakamega", "Meru", "Nyeri", "Garissa", "Mandera"].map(c => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/50">Bank Account Details</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Equity Bank 1234567890"
+                        required
+                        value={newDealerForm.bankAccount}
+                        onChange={(e) => setNewDealerForm({ ...newDealerForm, bankAccount: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-white/50">MOU Signed Date</label>
+                        <input
+                          type="date"
+                          value={newDealerForm.mouSignedAt}
+                          onChange={(e) => setNewDealerForm({ ...newDealerForm, mouSignedAt: e.target.value })}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-white/50">Fee Retained (%)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          required
+                          value={newDealerForm.transactionFeePct}
+                          onChange={(e) => setNewDealerForm({ ...newDealerForm, transactionFeePct: parseFloat(e.target.value) || 0 })}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/50">Product Categories (comma-separated)</label>
+                      <input
+                        type="text"
+                        placeholder="seeds, fertilizer, tools"
+                        value={categoryInput}
+                        onChange={(e) => {
+                          setCategoryInput(e.target.value);
+                          setNewDealerForm({
+                            ...newDealerForm,
+                            categories: e.target.value.split(",").map(cat => cat.trim()).filter(Boolean)
+                          });
+                        }}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white"
+                      />
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {newDealerForm.categories.map(cat => (
+                          <span key={cat} className="px-1.5 py-0.5 rounded bg-primary/10 border border-primary/20 text-primary text-[9px] font-bold">
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={actionLoading}
+                      className="w-full py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs disabled:opacity-50 transition-all shadow-md shadow-primary/20"
+                    >
+                      Register Agro-Dealer
+                    </button>
+                  </form>
+                </div>
+
+                <div className="lg:col-span-2 bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
+                  <h3 className="text-sm font-bold text-white">Registered Retail Partners</h3>
+                  <div className="overflow-x-auto border border-white/10 rounded-xl">
+                    <table className="w-full text-[11px] text-left border-collapse font-mono">
+                      <thead>
+                        <tr className="border-b border-white/10 text-white/40 bg-white/[0.01]">
+                          <th className="p-3">Dealer Name</th>
+                          <th className="p-3">County / Contacts</th>
+                          <th className="p-3">Bank Details</th>
+                          <th className="p-3">Fee / MOU</th>
+                          <th className="p-3">Categories</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody className="divide-y divide-white/5 text-white/70">
+                        {agroDealers.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="p-4 text-center text-white/30">No agro-dealers registered yet.</td>
+                          </tr>
+                        ) : (
+                          agroDealers.map((d) => (
+                            <tr key={d.id} className="hover:bg-white/[0.01]">
+                              <td className="p-3">
+                                <div className="font-semibold text-white">{d.dealer_name}</div>
+                                <div className="text-[9px] text-white/40">ID: {d.id.substring(0, 8)}...</div>
+                              </td>
+                              <td className="p-3">
+                                <div className="font-bold text-primary">{d.county_id}</div>
+                                <div className="text-white/55">{d.dealer_phone}</div>
+                              </td>
+                              <td className="p-3 text-[10px] text-white/60">{d.bank_account}</td>
+                              <td className="p-3">
+                                <div className="font-bold text-amber-400">{d.transaction_fee_pct}% Fee</div>
+                                <div className="text-[9px] text-white/40">{d.mou_signed_at ? new Date(d.mou_signed_at).toLocaleDateString() : "No MOU Date"}</div>
+                              </td>
+                              <td className="p-3">
+                                <div className="flex flex-wrap gap-1 max-w-[150px]">
+                                  {(d.categories || []).map(cat => (
+                                    <span key={cat} className="px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-white/60">
+                                      {cat}
+                                    </span>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Weekly Voucher Reconciliation Section */}
+              <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
+                <h3 className="text-sm font-bold text-white">Pending Weekly Settlement Reconciliations</h3>
+                <div className="overflow-x-auto border border-white/10 rounded-xl">
+                  <table className="w-full text-[11px] text-left border-collapse font-mono">
+                    <thead>
+                      <tr className="border-b border-white/10 text-white/40 bg-white/[0.01]">
+                        <th className="p-3">Agro-Dealer Name</th>
+                        <th className="p-3">Pending Tokens</th>
+                        <th className="p-3">Gross Voucher Value</th>
+                        <th className="p-3">Retained Fee</th>
+                        <th className="p-3">Net KES Owed</th>
+                        <th className="p-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 text-white/70">
+                      {dealerReconciliations.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-4 text-center text-white/30">No pending weekly voucher settlements.</td>
+                        </tr>
+                      ) : (
+                        dealerReconciliations.map((r) => (
+                          <tr key={r.agro_dealer_id} className="hover:bg-white/[0.01]">
+                            <td className="p-3">
+                              <div className="font-semibold text-white">{r.dealer_name}</div>
+                              <div className="text-[9px] text-white/40">{r.dealer_phone} • {r.county_id}</div>
+                            </td>
+                            <td className="p-3 font-semibold text-amber-400">{r.total_tokens.toLocaleString()}</td>
+                            <td className="p-3 text-white/80">KES {r.total_kes_value.toFixed(2)}</td>
+                            <td className="p-3 text-red-400/80">- KES {r.total_fee_retained.toFixed(2)} ({r.transaction_fee_pct}%)</td>
+                            <td className="p-3 font-bold text-emerald-400">KES {r.total_kes_owed.toFixed(2)}</td>
+                            <td className="p-3 text-right">
+                              <div className="flex items-center justify-end space-x-2">
+                                <button
+                                  onClick={() => handleDownloadReconciliationCSV(r)}
+                                  className="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 border border-white/5 text-[10px] text-white/80 font-bold transition-all"
+                                >
+                                  📄 Report
+                                </button>
+                                {r.total_tokens > 0 ? (
+                                  <button
+                                    onClick={() => {
+                                      setSettleDealerId(r.agro_dealer_id);
+                                      setSettleReference("");
+                                    }}
+                                    className="px-3 py-1 rounded bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] transition-all"
+                                  >
+                                    Confirm Settlement
+                                  </button>
+                                ) : (
+                                  <span className="text-[10px] text-white/30 font-bold">Settled</span>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Settlement Modal */}
+              {settleDealerId && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                  <div className="bg-[#0b0c16] border border-white/10 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                    <div className="space-y-1">
+                      <h3 className="text-md font-bold text-white">Agro-Dealer Settlement Transfer</h3>
+                      <p className="text-xs text-white/50">Enter the bank transaction reference number to confirm this settlement.</p>
+                    </div>
+
+                    <form onSubmit={handleSettleAgroDealerVouchers} className="space-y-4">
+                      <div className="space-y-1 bg-white/5 border border-white/5 rounded-2xl p-4 text-xs space-y-2">
+                        {(() => {
+                          const dealer = dealerReconciliations.find(r => r.agro_dealer_id === settleDealerId);
+                          if (!dealer) return null;
+                          return (
+                            <>
+                              <div className="flex justify-between">
+                                <span className="text-white/50">Dealer Name:</span>
+                                <span className="font-bold text-white">{dealer.dealer_name}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-white/50">Bank Account:</span>
+                                <span className="font-mono text-white/80">{dealer.bank_account}</span>
+                              </div>
+                              <div className="flex justify-between border-t border-white/5 pt-2">
+                                <span className="text-white/50">Net KES Transfer:</span>
+                                <span className="font-extrabold text-emerald-400 text-sm">KES {dealer.total_kes_owed.toFixed(2)}</span>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-white/50">Bank Transfer / EFT Reference Code</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. BK-EFT-294821X"
+                          value={settleReference}
+                          onChange={(e) => setSettleReference(e.target.value)}
+                          className="w-full bg-[#0a0a23] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white"
+                        />
+                      </div>
+
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setSettleDealerId(null)}
+                          className="flex-1 py-2 text-xs rounded-xl bg-white/5 border border-white/5 text-white/60 hover:bg-white/10 font-bold transition-all"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={actionLoading || !settleReference.trim()}
+                          className="flex-1 py-2 text-xs rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-all disabled:opacity-50"
+                        >
+                          Confirm Paid
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* --------------------------------------------------
+              TAB 4C: SAFARICOM DARAJA B2C ACTIVATION & RETRY
+              -------------------------------------------------- */}
+          {activeTab === "mpesa-activation" && (
+            <div className="space-y-8">
+              <div className="space-y-1 border-b border-white/5 pb-4">
+                <h2 className="text-md font-bold text-white/90">M-Pesa Production B2C Gateway</h2>
+                <p className="text-xs text-white/50">Monitor production Safaricom Daraja activation checklists and manually retry failed cashouts.</p>
+              </div>
+
+              {/* Status & Checklist Section */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Gateway Status Indicators */}
+                <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
+                  <h3 className="text-sm font-bold text-white">Daraja API Channel Status</h3>
+                  <div className="flex items-center space-x-4">
+                    <div className={`h-3 w-3 rounded-full ${darajaProductionActive ? "bg-emerald-500 animate-pulse shadow-md shadow-emerald-500/50" : "bg-amber-500"}`} />
+                    <div>
+                      <div className="text-xs font-bold text-white uppercase">
+                        {darajaProductionActive ? "PRODUCTION STAGE READY" : "SANDBOX INTERFACE ONLY"}
+                      </div>
+                      <p className="text-[9px] text-white/40 font-mono">Flag: DARAJA_PRODUCTION_ACTIVE</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-black/25 rounded-2xl p-4 border border-white/5 space-y-2">
+                    <h4 className="text-[10px] uppercase font-bold text-white/50">M-Pesa B2C Gateway Rule</h4>
+                    <p className="text-[10px] text-white/70 leading-relaxed">
+                      Safaricom Daraja B2C M-Pesa is flag-gated. Automatic processing will ONLY execute when the environment flag is true and the activation checklist below is fully verified.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Persistent Checklist Checkboxes */}
+                <div className="md:col-span-2 bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
+                  <h3 className="text-sm font-bold text-white">Production Launch Activation Checklist</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3 bg-black/10 p-3 rounded-xl border border-white/5">
+                      <input
+                        type="checkbox"
+                        id="daraja_credentials"
+                        checked={mpesaChecklist.daraja_credentials_approved}
+                        onChange={() => handleToggleMpesaSetting("daraja_credentials_approved", mpesaChecklist.daraja_credentials_approved)}
+                        className="h-4 w-4 rounded border-white/10 bg-white/5 text-primary focus:ring-primary/50 mt-0.5"
+                      />
+                      <label htmlFor="daraja_credentials" className="text-xs space-y-0.5 cursor-pointer select-none">
+                        <div className="font-semibold text-white">Safaricom Daraja production API credentials approved by network architect</div>
+                        <p className="text-[10px] text-white/40">Verifies that the consumer key, consumer secret, shortcode, and passkey have been secured and tested.</p>
+                      </label>
+                    </div>
+
+                    <div className="flex items-start space-x-3 bg-black/10 p-3 rounded-xl border border-white/5">
+                      <input
+                        type="checkbox"
+                        id="first_b2b"
+                        checked={mpesaChecklist.first_b2b_revenue_received}
+                        onChange={() => handleToggleMpesaSetting("first_b2b_revenue_received", mpesaChecklist.first_b2b_revenue_received)}
+                        className="h-4 w-4 rounded border-white/10 bg-white/5 text-primary focus:ring-primary/50 mt-0.5"
+                      />
+                      <label htmlFor="first_b2b" className="text-xs space-y-0.5 cursor-pointer select-none">
+                        <div className="font-semibold text-white">First B2B weather data purchaser revenue deposited to escrow pool</div>
+                        <p className="text-[10px] text-white/40">Confirms the network holds sufficient cash backing reserves in KES before opening Safaricom automated payouts.</p>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Failed Redemptions Queue */}
+              <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span>Failed B2C Redemptions Queue</span>
+                  <span className="text-[10px] px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full font-bold">
+                    {mpesaFailedRedemptions.length} Failed
+                  </span>
+                </h3>
+                <div className="overflow-x-auto border border-white/10 rounded-xl">
+                  <table className="w-full text-[11px] text-left border-collapse font-mono">
+                    <thead>
+                      <tr className="border-b border-white/10 text-white/40 bg-white/[0.01]">
+                        <th className="p-3">User Name</th>
+                        <th className="p-3">Amount KES / Tokens</th>
+                        <th className="p-3">M-Pesa Phone</th>
+                        <th className="p-3">Date Initiated</th>
+                        <th className="p-3">Failure Reason Details</th>
+                        <th className="p-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 text-white/70">
+                      {mpesaFailedRedemptions.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-white/30">No failed M-Pesa redemptions found.</td>
+                        </tr>
+                      ) : (
+                        mpesaFailedRedemptions.map((r) => (
+                          <tr key={r.id} className="hover:bg-white/[0.01]">
+                            <td className="p-3">
+                              <div className="font-semibold text-white">{r.full_name}</div>
+                              <div className="text-[9px] text-white/40">ID: {r.id.substring(0, 8)}...</div>
+                            </td>
+                            <td className="p-3">
+                              <div className="font-bold text-emerald-400">KES {parseFloat(String(r.amount_kes)).toFixed(2)}</div>
+                              <div className="text-[9px] text-white/40">{r.tokens_spent} tokens</div>
+                            </td>
+                            <td className="p-3 text-white/80">{r.phone || "—"}</td>
+                            <td className="p-3 text-white/40">{new Date(r.initiated_at).toLocaleString()}</td>
+                            <td className="p-3 text-red-400/80 text-[10px] truncate max-w-[200px]" title={r.failure_reason}>
+                              {r.failure_reason || "Unknown API error"}
+                            </td>
+                            <td className="p-3 text-right">
+                              <button
+                                onClick={() => handleRetryMpesaRedemption(r.id)}
+                                disabled={mpesaRetryLoadingId !== null}
+                                className="px-3.5 py-1 rounded bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] disabled:opacity-50 shadow-md shadow-amber-500/10 flex items-center gap-1.5 ml-auto transition-all"
+                              >
+                                {mpesaRetryLoadingId === r.id ? (
+                                  <>
+                                    <span className="animate-spin inline-block h-2 w-2 border-2 border-white border-t-transparent rounded-full" />
+                                    Retrying...
+                                  </>
+                                ) : (
+                                  "Retry Payout"
+                                )}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -1694,6 +2763,100 @@ export default function AdminPage() {
               -------------------------------------------------- */}
           {activeTab === "reports" && (
             <div className="space-y-8">
+              {/* Token Economic Activity Report (Annex A) */}
+              <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold text-white">Token Economic Activity Report (Annex A)</h3>
+                  <p className="text-xs text-white/50">Run aggregate earn/redeem volumes, county speeds, earners, and conversion velocities for EOI submissions.</p>
+                </div>
+
+                <form onSubmit={handleDownloadAnnexAReport} className="flex flex-wrap gap-4 items-end bg-black/10 p-4 rounded-xl">
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-white/50">Start Date</label>
+                    <input
+                      type="date"
+                      value={annexAStartDate}
+                      onChange={(e) => setAnnexAStartDate(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-white/50">End Date</label>
+                    <input
+                      type="date"
+                      value={annexAEndDate}
+                      onChange={(e) => setAnnexAEndDate(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-white/50">Report Format</label>
+                    <select
+                      value={annexAFormat}
+                      onChange={(e) => setAnnexAFormat(e.target.value as any)}
+                      className="bg-[#0a0a23] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary/55 text-white font-mono"
+                    >
+                      <option value="csv">Multi-Section CSV File</option>
+                      <option value="json">Interactive JSON Preview</option>
+                    </select>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={annexALoading}
+                    className="px-5 py-2.5 rounded-xl bg-emerald-505 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs disabled:opacity-50 shadow-md shadow-emerald-500/10 flex items-center gap-1.5"
+                  >
+                    {annexALoading ? (
+                      <>
+                        <span className="animate-spin inline-block h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full" />
+                        Running...
+                      </>
+                    ) : (
+                      "Generate Annex A Report"
+                    )}
+                  </button>
+                </form>
+
+                {/* Show JSON preview for Annex A */}
+                {annexAReportData && annexAFormat === "json" && (
+                  <div className="space-y-4 border-t border-white/5 pt-4">
+                    <h4 className="text-xs font-bold text-white/90">Previewing Annex A Report JSON</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/10 text-xs text-white/70">
+                        <div className="text-[10px] text-white/40 uppercase">Total Tokens Earned</div>
+                        <div className="text-lg font-black text-white">{annexAReportData.summary?.totalEarned.toLocaleString()}</div>
+                      </div>
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/10 text-xs text-white/70">
+                        <div className="text-[10px] text-white/40 uppercase">Total Tokens Redeemed</div>
+                        <div className="text-lg font-black text-white">{annexAReportData.summary?.totalRedeemed.toLocaleString()}</div>
+                      </div>
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/10 text-xs text-white/70">
+                        <div className="text-[10px] text-white/40 uppercase">Total Disbursed KES</div>
+                        <div className="text-lg font-black text-emerald-400">KES {parseFloat(String(annexAReportData.summary?.totalKesDisbursed)).toFixed(2)}</div>
+                      </div>
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/10 text-xs text-white/70">
+                        <div className="text-[10px] text-white/40 uppercase">Avg Conversion Velocity</div>
+                        <div className="text-lg font-black text-amber-400">{parseFloat(String(annexAReportData.summary?.conversionVelocity)).toFixed(2)} Days</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/10 max-h-[200px] overflow-y-auto text-[10px] font-mono">
+                        <p className="text-emerald-400 font-bold mb-1">Earned Breakdown by Activity</p>
+                        <pre>{JSON.stringify(annexAReportData.earnedBreakdown, null, 2)}</pre>
+                      </div>
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/10 max-h-[200px] overflow-y-auto text-[10px] font-mono">
+                        <p className="text-blue-400 font-bold mb-1">Redeemed Breakdown by Layer</p>
+                        <pre>{JSON.stringify(annexAReportData.redeemedBreakdown, null, 2)}</pre>
+                      </div>
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/10 max-h-[200px] overflow-y-auto text-[10px] font-mono col-span-full">
+                        <p className="text-amber-400 font-bold mb-1">County Performance Breakdown</p>
+                        <pre>{JSON.stringify(annexAReportData.countyBreakdown, null, 2)}</pre>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Partner report builder section */}
               <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
                 <div className="space-y-1">
@@ -1762,10 +2925,10 @@ export default function AdminPage() {
                 )}
               </div>
 
-              {/* Midnight blockchain weekly anchors trigger */}
+              {/* XION & zkVerify blockchain weekly anchors trigger */}
               <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-white">Midnight Blockchain Weekly Merkle Anchoring</h3>
+                  <h3 className="text-sm font-bold text-white">XION & zkVerify Blockchain Weekly Merkle Anchoring</h3>
                   <p className="text-xs text-white/50">Triggers automated background anchoring of verified crop and weather data batches for ended weeks.</p>
                 </div>
                 <button
@@ -1780,7 +2943,7 @@ export default function AdminPage() {
               {/* Certificate formulation form */}
               <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-white">Issue Midnight ZK Data Compliance Certificate</h3>
+                  <h3 className="text-sm font-bold text-white">Issue zkVerify ZK Data Compliance Certificate</h3>
                   <p className="text-xs text-white/50">Submit a county climate quality certificate contract transaction permanently on-chain.</p>
                 </div>
                 <form onSubmit={handleIssueCertificate} className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
@@ -1841,7 +3004,7 @@ export default function AdminPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Midnight Anchors */}
                 <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-white/90">Latest Midnight Anchors</h3>
+                  <h3 className="text-sm font-bold text-white/90">Latest XION Anchors</h3>
                   <div className="overflow-x-auto border border-white/10 rounded-xl max-h-[220px] overflow-y-auto">
                     <table className="w-full text-[10px] text-left border-collapse font-mono">
                       <thead>
@@ -1861,7 +3024,7 @@ export default function AdminPage() {
                             <tr key={an.week_number} className="hover:bg-white/[0.01]">
                               <td className="p-3 font-semibold text-white">{an.week_number}</td>
                               <td className="p-3 truncate max-w-[120px]" title={an.batch_hash}>{an.batch_hash}</td>
-                              <td className="p-3 truncate max-w-[120px]" title={an.midnight_tx_hash}>{an.midnight_tx_hash}</td>
+                              <td className="p-3 truncate max-w-[120px]" title={an.xion_tx_hash}>{an.xion_tx_hash}</td>
                             </tr>
                           ))
                         )}

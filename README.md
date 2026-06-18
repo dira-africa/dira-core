@@ -1,16 +1,17 @@
 # dira-core
 
-**Dira — Climate Data, Verified on Midnight. Rewards Paid in Airtime.**
+**Dira — Climate Data, Verified on XION & zkVerify. Rewards Paid in Airtime.**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-teal.svg)](https://opensource.org/licenses/Apache-2.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
-[![Midnight](https://img.shields.io/badge/Midnight-Mainnet-1A1A6E.svg)](https://midnight.network/)
+[![XION](https://img.shields.io/badge/XION-Mainnet-orange.svg)](https://xion.burnt.com/)
+[![zkVerify](https://img.shields.io/badge/zkVerify-Mainnet-purple.svg)](https://zkverify.io/)
 [![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 The Telegram Mini App for the Dira platform. Farmers use it to submit geo-tagged crop photos and receive AI-generated health reports. Data Agents use it to sync barometric pressure readings and earn Climate Tokens. Tokens are redeemable for mobile airtime, farm input vouchers, Dira Circle community cash, or M-Pesa.
 
-**Open to the world. Built for Kenya. Verified on Midnight.**
+**Open to the world. Built for Kenya. Verified on XION & zkVerify.**
 
 ---
 
@@ -153,7 +154,7 @@ For security vulnerabilities, do **not** open a public issue. Email **security@d
 |---|---|
 | [`dira-api`](https://github.com/dira-africa/dira-api) | Fastify backend API, AI verification, circular economy services |
 | [`dira-docs`](https://github.com/dira-africa/dira-docs) | OpenAPI specs, API documentation, reviewer guide |
-| [`dira-contracts`](https://github.com/dira-africa/dira-contracts) | Compact smart contracts for Midnight blockchain |
+| [`dira-contracts`](https://github.com/dira-africa/dira-contracts) | CosmWasm smart contracts for XION plus zkVerify circuits |
 
 ---
 
