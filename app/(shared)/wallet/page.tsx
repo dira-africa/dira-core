@@ -85,7 +85,8 @@ const walletTranslations = {
     cardAirtimeDesc: "Africa's Talking Instant Airtime",
     cardVoucherDesc: "Agro-dealer farm input vouchers",
     cardCircleDesc: "Community cash distribution pools",
-    cardMpesaDesc: "Safaricom B2C M-Pesa cashout"
+    cardMpesaDesc: "Safaricom B2C M-Pesa cashout",
+    comingSoon: "Coming Soon"
   },
   sw: {
     title: "Mkoba",
@@ -121,7 +122,8 @@ const walletTranslations = {
     cardAirtimeDesc: "Muda wa Maongezi wa Africa's Talking",
     cardVoucherDesc: "Voucher za pembejeo za agro-dealer",
     cardCircleDesc: "Mzunguko wa vikundi vya fedha vya jamii",
-    cardMpesaDesc: "Ukombozi wa Safaricom B2C M-Pesa"
+    cardMpesaDesc: "Ukombozi wa Safaricom B2C M-Pesa",
+    comingSoon: "Hivi Karibuni"
   }
 };
 
@@ -142,9 +144,9 @@ export default function WalletPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Active environments flags
-  const isVouchersActive = process.env.NEXT_PUBLIC_VOUCHERS_ACTIVE === "true";
-  const isDiraCircleActive = process.env.NEXT_PUBLIC_DIRA_CIRCLE_ACTIVE === "true";
-  const isDarajaActive = process.env.NEXT_PUBLIC_DARAJA_ACTIVE === "true";
+  const isVouchersActive = process.env.VOUCHERS_ACTIVE === "true" || process.env.NEXT_PUBLIC_VOUCHERS_ACTIVE === "true";
+  const isDiraCircleActive = process.env.DIRA_CIRCLE_ACTIVE === "true" || process.env.NEXT_PUBLIC_DIRA_CIRCLE_ACTIVE === "true";
+  const isDarajaActive = process.env.DARAJA_PRODUCTION_ACTIVE === "true" || process.env.NEXT_PUBLIC_DARAJA_PRODUCTION_ACTIVE === "true" || process.env.NEXT_PUBLIC_DARAJA_ACTIVE === "true";
 
   const t = walletTranslations[locale === "sw" ? "sw" : "en"];
 
@@ -480,7 +482,7 @@ export default function WalletPage() {
                 </p>
               </div>
               {isDiraCircleActive ? (
-                <Link href="/shared/redemptions/circle">
+                <Link href="/wallet/redeem/circle">
                   <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 active:scale-[0.98] rounded-xl text-xs font-black transition-all tracking-wider uppercase">
                     KOMBOA
                   </button>
@@ -506,7 +508,7 @@ export default function WalletPage() {
                       ? "bg-orange-500/20 border border-orange-500/30 text-orange-400"
                       : "bg-white/10 text-white/40 border border-white/10"
                   }`}>
-                    {isDarajaActive ? t.available : t.comingMonth3_4}
+                    {isDarajaActive ? t.available : t.comingSoon}
                   </span>
                 </div>
                 <p className="text-[10px] text-white/50 font-medium">
@@ -517,7 +519,7 @@ export default function WalletPage() {
                 </p>
               </div>
               {isDarajaActive ? (
-                <Link href="/shared/redemptions/mpesa">
+                <Link href="/wallet/redeem/mpesa">
                   <button className="px-4 py-2 bg-orange-600 hover:bg-orange-700 active:scale-[0.98] rounded-xl text-xs font-black transition-all tracking-wider uppercase">
                     KOMBOA
                   </button>
