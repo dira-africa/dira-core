@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
 import TelegramProvider from "@/components/TelegramProvider";
+import XionProvider from "@/components/XionProvider";
 import AppInitializer from "@/components/AppInitializer";
 import "./globals.css";
 
@@ -37,13 +38,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full min-h-screen bg-background text-foreground overflow-x-hidden`}
       >
-        <TelegramProvider>
-          <AppInitializer>
-            <div className="flex flex-col min-h-screen h-full w-full">
-              {children}
-            </div>
-          </AppInitializer>
-        </TelegramProvider>
+        <XionProvider>
+          <TelegramProvider>
+            <AppInitializer>
+              <div className="flex flex-col min-h-screen h-full w-full">
+                {children}
+              </div>
+            </AppInitializer>
+          </TelegramProvider>
+        </XionProvider>
       </body>
     </html>
   );

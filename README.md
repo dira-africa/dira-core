@@ -114,8 +114,19 @@ Copy `.env.local.example` to `.env.local`. All `NEXT_PUBLIC_` variables are safe
 | `NEXT_PUBLIC_VOUCHERS_ACTIVE` | Yes | `false` until first agro-dealer MOU signed |
 | `NEXT_PUBLIC_DIRA_CIRCLE_ACTIVE` | Yes | `false` until first county coordinator confirmed |
 | `NEXT_PUBLIC_DARAJA_ACTIVE` | Yes | `false` until Daraja production credentials approved AND first B2B revenue received |
+| `NEXT_PUBLIC_XION_TREASURY_CONTRACT_ADDRESS` | Yes | Treasury Contract Address deployed on the XION Developer Portal |
+| `NEXT_PUBLIC_XION_RPC_URL` | No | XION network RPC endpoint (`https://rpc.xion-testnet-2.burnt.com:443` in development) |
 
 **Never set `NEXT_PUBLIC_DARAJA_ACTIVE=true` in development.** This flag controls whether the M-Pesa redemption UI is shown to real users. It defaults to `false` and is activated only through a documented production process.
+
+### XION Treasury Contract Setup
+
+To enable gasless user transactions sponsored by the Dira platform, you must configure a Treasury Contract:
+1. **Developer Portal:** Log in or create an account at the [XION Developer Portal](https://app.dev.testnet.burnt.com).
+2. **Deploy Treasury:** Create a new Treasury contract and configure a Fee Grant using the `/cosmwasm.feegrant.v1beta1.BasicAllowance` option.
+3. **Redirect URL:** Set the OAuth Redirect URL to `https://app.diraafrica.org` (for production) or `http://localhost:3000` (for local development).
+4. **Gas Sponsorship:** Fund the newly deployed Treasury Contract address with XION to cover user transaction fee grants.
+5. **Configuration:** Copy the Treasury contract address and save it to `NEXT_PUBLIC_XION_TREASURY_CONTRACT_ADDRESS` in `.env.local`.
 
 ---
 
