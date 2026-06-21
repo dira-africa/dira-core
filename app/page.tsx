@@ -146,7 +146,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-6 text-center text-xs text-white/40 space-y-1">
         <p>Dira Africa Platform • Apache 2.0 License</p>
-        <p>© 2026 Blockchain & Climate Institute</p>
+        <p>© 2026 Dira Africa</p>
       </footer>
     </main>
   );
