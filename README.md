@@ -1,164 +1,109 @@
+<div align="center">
+
 # dira-core
 
-**Dira — Climate Data, Verified on Hedera. Custodial Rewards.**
+**The Dira Africa Telegram Mini App**
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-teal.svg)](https://opensource.org/licenses/Apache-2.0)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
-[![Hedera](https://img.shields.io/badge/Hedera-HCS%20%26%20HTS-green.svg)](https://hedera.com/)
-[![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+Farmers and Data Agents capture climate observations and redeem rewards — all inside Telegram, with no wallet or crypto knowledge required.
 
-The Telegram Mini App for the Dira platform. Farmers use it to submit geo-tagged crop photos and receive AI-generated health reports. Data Agents use it to sync barometric pressure readings and earn Climate Tokens. Tokens are redeemable for mobile airtime, farm input vouchers, Dira Circle community cash, or mobile money cash-out.
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-0A6E56.svg)](../LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-14-1A1A6E.svg)](https://nextjs.org)
+[![Telegram Mini App](https://img.shields.io/badge/Telegram-Mini_App-0A6E56.svg)](https://core.telegram.org/bots/webapps)
 
-**Open to the world. Built for Kenya. Verified on Hedera.**
+</div>
 
 ---
 
-## What this repository contains
+## Overview
 
-| Path | Purpose |
-|---|---|
-| `/app/(farmer)/` | Farmer module — crop photo capture, health reports, submission history |
-| `/app/(agent)/` | Data Agent module — barometric sync, coverage map, leaderboard |
-| `/app/(shared)/` | Shared — wallet, four-layer redemption UI, settings |
-| `/app/onboarding/` | New user onboarding — language, role, farm/agent profile |
-| `/components/` | Reusable UI components |
-| `/lib/api/` | Typed API client for dira-api |
-| `/lib/i18n/` | English and Swahili translation strings |
-| `/lib/sensors/` | Barometric and GPS sensor utilities |
+`dira-core` is the frontend for the [Dira Africa](https://github.com/dira-africa) platform — a decentralized climate-data verification network for African smallholder agriculture. It is a **Telegram Mini App** built with Next.js: farmers use it to submit geo-tagged crop photos and receive AI-generated health reports, and Data Agents use it to sync barometric-pressure readings and earn Climate Tokens. Tokens are redeemable for mobile money, airtime, farm-input vouchers, or Dira Circle community cash.
 
----
+Identity comes from Telegram, and all blockchain activity happens server-side in [`dira-api`](https://github.com/dira-africa/dira-api). This is a **custodial** app: there is no on-chain wallet, no seed phrase, and no key management in the client. The experience is pure Web2.
+
+## Features
+
+- 📲 **Telegram-native onboarding** — sign in with Telegram; role-based flows for farmers and Data Agents.
+- 📸 **Guided data capture** — camera capture, crop selection, automatic geolocation, and device-sensor (barometer) readings.
+- 📊 **Reports & dashboards** — AI crop-health reports, historical submissions, and maps.
+- 💚 **Custodial wallet** — Climate Token balance and one-tap redemption (mobile money, airtime, vouchers, community pool).
+- 🌍 **Bilingual** — full English and Swahili support.
 
 ## Tech stack
 
-- **Framework:** Next.js 14 (App Router, TypeScript)
-- **Hosting:** Deployed as a Telegram Mini App — opens inside the Telegram WebView via [@DiraBot](https://t.me/DiraBot)
-- **Styling:** Tailwind CSS — primary teal `#0A6E56`, secondary midnight `#1A1A6E`
-- **Maps:** Leaflet.js — coverage map and farm GPS location
-- **Auth:** Telegram Web App SDK — HMAC-SHA256 verified `initData`, no username/password
-- **Payments (Layer 1):** Africa's Talking — airtime disbursement from Day 1
-- **Payments (Layer 2):** Farm input voucher QR codes — redeemable at agro-dealer partners
-- **Payments (Layer 3):** Dira Circle — county-level community cash pool
-- **Payments (Layer 4):** Pretium B2C — mobile money cash-out (supporting all Kenyan & Ugandan telcos)
-- **Storage:** Cloudflare R2 — crop photos uploaded directly from the client (pre-signed URLs)
+| Layer | Choice |
+| --- | --- |
+| Framework | Next.js 14 (App Router), React 18, TypeScript |
+| Telegram | `@twa-dev/sdk` (Telegram Web App SDK) |
+| Maps & charts | Leaflet, Chart.js |
+| Styling | Tailwind CSS — primary teal `#0A6E56`, secondary midnight `#1A1A6E` |
+| Backend | [`dira-api`](https://github.com/dira-africa/dira-api) over HTTPS |
 
----
+## Project structure
 
-## Quick start
+```
+app/
+  (auth)/onboarding/   Role, language, and profile onboarding
+  (farmer)/            Farmer home, submit (capture → details → upload), reports
+  (agent)/             Agent home and settings
+  (shared)/            Home, wallet + redemption, public dashboard, privacy
+  admin/               Admin views
+components/             UI components (SubmitCapture, FarmerDashboard, TelegramProvider, …)
+lib/
+  api-client.ts        Typed calls to dira-api
+  auth.ts              Telegram identity handling
+  sensors/barometer.ts Device pressure capture
+  i18n/                English + Swahili translations
+```
+
+## Getting started
 
 ### Prerequisites
 
-- Node.js ≥ 20.x
-- npm ≥ 10.x
-- A Telegram account (to test the Mini App flow)
+- Node.js 20+ and npm
+- A running [`dira-api`](https://github.com/dira-africa/dira-api) instance (local or deployed)
+- A Telegram bot from [@BotFather](https://t.me/BotFather) with a Mini App configured
 
-### Install
+### Install & run
 
 ```bash
-git clone https://github.com/dira-africa/dira-core.git
-cd dira-core
 npm install
-cp .env.local.example .env.local
-# Fill in your values — see .env.local.example for descriptions
-```
-
-### Run locally
-
-```bash
+cp .env.local.example .env.local   # then fill in the values below
 npm run dev
-# App runs on http://localhost:3000
 ```
 
-### Testing as a Telegram Mini App
+### Environment
 
-To test inside the Telegram app:
-1. Expose your localhost server using a tunneling service (e.g., ngrok or Cloudflare Tunnels):
-   ```bash
-   ngrok http 3000
-   ```
-2. Create a test bot using Telegram's BotFather.
-3. Configure the bot's Menu Button or WebApp link to point to your secure HTTPS tunnel URL.
-4. Launch the WebApp inside Telegram!
-
-### Type check
-
-```bash
-npx tsc --noEmit
-# Must pass with zero errors before any commit
-```
-
-### Lint
-
-```bash
-npm run lint
-```
-
-### Test
-
-```bash
-npm test
-npm run test:coverage  # with coverage report
-```
-
----
-
-## Environment variables
-
-Copy `.env.local.example` to `.env.local`. All `NEXT_PUBLIC_` variables are safe to expose to the browser. Never put secrets in a `NEXT_PUBLIC_` variable.
+Configure `.env.local`. Only `NEXT_PUBLIC_` values are exposed to the browser — **never place a secret in a `NEXT_PUBLIC_` variable.**
 
 | Variable | Required | Description |
-|---|---|---|
-| `NEXT_PUBLIC_API_URL` | Yes | dira-api base URL (`https://api.diraafrica.org` in production) |
-| `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | Yes | `DiraBot` |
-| `NEXT_PUBLIC_VOUCHERS_ACTIVE` | Yes | `false` until first agro-dealer MOU signed |
-| `NEXT_PUBLIC_DIRA_CIRCLE_ACTIVE` | Yes | `false` until first county coordinator confirmed |
-| `NEXT_PUBLIC_PRETIUM_ACTIVE` | Yes | `false` until Pretium integration is confirmed active |
-| `NEXT_PUBLIC_HEDERA_TOKEN_ID` | Yes | HTS Climate Token ID |
+| --- | --- | --- |
+| `NEXT_PUBLIC_FASTIFY_API_URL` | Yes | Base URL of the dira-api backend |
+| `NEXT_PUBLIC_TELEGRAM_BOT_NAME` | Yes | Your Telegram bot username |
+| `NEXT_PUBLIC_ENVIRONMENT` | Yes | `development` \| `production` |
 
+> Telegram Mini Apps must be served over **HTTPS**. For local testing, tunnel your dev server (e.g. with a secure tunnel) and set that HTTPS URL as the Mini App URL in BotFather.
 
+## Scripts
 
----
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Production build |
+| `npm run start` | Serve the production build |
+| `npm run lint` | Lint the codebase |
 
 ## Deployment
 
-Deployed via Coolify on Hetzner at `https://app.diraafrica.org`. Auto-deploys on push to `main`. See [`dira-docs`](https://github.com/dira-africa/dira-docs) for the full deployment guide.
-
----
+Deploy behind HTTPS (the project team uses Coolify on Hetzner) and register the public URL as the Mini App URL in BotFather. Set the environment variables above in your host's configuration.
 
 ## Contributing
 
-We welcome contributions. Before you start, please read:
+Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) and our [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md). Keep every user-facing string in both English and Swahili.
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** — how to set up your environment, branch strategy, commit standards, PR process, code standards, security checklist, and testing requirements
-- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — how we treat each other in this community
+## Project status
 
-For security vulnerabilities, do **not** open a public issue. Email **security@diraafrica.org** instead.
+Active development, testnet-first. The wallet and redemption flows are being wired to the Hedera-backed [`dira-api`](https://github.com/dira-africa/dira-api) endpoints.
 
----
+## License
 
-## Community and support
-
-| Channel | Purpose |
-|---|---|
-| [GitHub Issues](https://github.com/dira-africa/dira-core/issues) | Bug reports and feature requests |
-| [GitHub Discussions](https://github.com/dira-africa/dira-core/discussions) | Architecture questions and ideas |
-| community@diraafrica.org | General inquiries |
-| security@diraafrica.org | Security vulnerabilities (private) |
-| conduct@dira.africa | Code of Conduct reports (private) |
-
----
-
-## Related repositories
-
-* **[`dira-core`](https://github.com/dira-africa/dira-core)** — Telegram Mini App frontend. Next.js 14 App Router + @twa-dev/sdk. Onboarding, capture (with device barometer), reports, wallet/redeem, maps, dashboards, English/Swahili. Carries XION account abstraction to remove.
-* **[`dira-api`](https://github.com/dira-africa/dira-api)** — the backend. Fastify + TypeScript, raw SQL migrations via pg, BullMQ + Redis, Zod env, pgcrypto PII. Services already cover AI verification, triangulation, tokens (internal ledger), airtime, Dira Circle, vouchers, B2B/partner, DPA and the public dashboard. Anchoring is zkVerify + XION and cash-out is Daraja M-Pesa — those are the parts we replace (Hedera for anchoring, Pretium for cash-out).
-* **[`dira-docs`](https://github.com/dira-africa/dira-docs)** — docs & evidence room. Architecture, OpenAPI, reviewer guide. Currently XION/zkVerify-themed; rewritten to Hedera in P3.4.
-* **`dira-contracts`** — DELETED. Held a CosmWasm/XION contract and a zkVerify circom circuit. Removed entirely in P0.2 (along with the Midnight .compact files inside dira-api) so there are no mix-ups.
-
----
-
-## Licence
-
-Apache 2.0 — see [LICENSE](LICENSE).
-
-*Dira Africa Limited, 2026.*
+[Apache License 2.0](./LICENSE) © Dira Africa.
