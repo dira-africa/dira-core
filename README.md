@@ -161,11 +161,10 @@ For security vulnerabilities, do **not** open a public issue. Email **security@d
 
 ## Related repositories
 
-| Repository | Description |
-|---|---|
-| [`dira-api`](https://github.com/dira-africa/dira-api) | Fastify backend API, AI verification, circular economy services |
-| [`dira-docs`](https://github.com/dira-africa/dira-docs) | OpenAPI specs, API documentation, reviewer guide |
-| [`dira-contracts`](https://github.com/dira-africa/dira-contracts) | CosmWasm smart contracts for XION plus zkVerify circuits |
+* **[`dira-core`](https://github.com/dira-africa/dira-core)** — Telegram Mini App frontend. Next.js 14 App Router + @twa-dev/sdk. Onboarding, capture (with device barometer), reports, wallet/redeem, maps, dashboards, English/Swahili. Carries XION account abstraction to remove.
+* **[`dira-api`](https://github.com/dira-africa/dira-api)** — the backend. Fastify + TypeScript, raw SQL migrations via pg, BullMQ + Redis, Zod env, pgcrypto PII. Services already cover AI verification, triangulation, tokens (internal ledger), airtime, Dira Circle, vouchers, B2B/partner, DPA and the public dashboard. Anchoring is zkVerify + XION and cash-out is Daraja M-Pesa — those are the parts we replace (Hedera for anchoring, Pretium for cash-out).
+* **[`dira-docs`](https://github.com/dira-africa/dira-docs)** — docs & evidence room. Architecture, OpenAPI, reviewer guide. Currently XION/zkVerify-themed; rewritten to Hedera in P3.4.
+* **`dira-contracts`** — DELETED. Held a CosmWasm/XION contract and a zkVerify circom circuit. Removed entirely in P0.2 (along with the Midnight .compact files inside dira-api) so there are no mix-ups.
 
 ---
 
