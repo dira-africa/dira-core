@@ -1,17 +1,16 @@
 # dira-core
 
-**Dira — Climate Data, Verified on XION & zkVerify. Rewards Paid in Airtime.**
+**Dira — Climate Data, Verified on Hedera. Custodial Rewards.**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-teal.svg)](https://opensource.org/licenses/Apache-2.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
-[![XION](https://img.shields.io/badge/XION-Mainnet-orange.svg)](https://xion.burnt.com/)
-[![zkVerify](https://img.shields.io/badge/zkVerify-Mainnet-purple.svg)](https://zkverify.io/)
+[![Hedera](https://img.shields.io/badge/Hedera-HCS%20%26%20HTS-green.svg)](https://hedera.com/)
 [![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
-The Telegram Mini App for the Dira platform. Farmers use it to submit geo-tagged crop photos and receive AI-generated health reports. Data Agents use it to sync barometric pressure readings and earn Climate Tokens. Tokens are redeemable for mobile airtime, farm input vouchers, Dira Circle community cash, or M-Pesa.
+The Telegram Mini App for the Dira platform. Farmers use it to submit geo-tagged crop photos and receive AI-generated health reports. Data Agents use it to sync barometric pressure readings and earn Climate Tokens. Tokens are redeemable for mobile airtime, farm input vouchers, Dira Circle community cash, or mobile money cash-out.
 
-**Open to the world. Built for Kenya. Verified on XION & zkVerify.**
+**Open to the world. Built for Kenya. Verified on Hedera.**
 
 ---
 
@@ -40,7 +39,7 @@ The Telegram Mini App for the Dira platform. Farmers use it to submit geo-tagged
 - **Payments (Layer 1):** Africa's Talking — airtime disbursement from Day 1
 - **Payments (Layer 2):** Farm input voucher QR codes — redeemable at agro-dealer partners
 - **Payments (Layer 3):** Dira Circle — county-level community cash pool
-- **Payments (Layer 4):** Safaricom Daraja B2C — M-Pesa (flag-gated, activates Month 3–4)
+- **Payments (Layer 4):** Pretium B2C — mobile money cash-out (supporting all Kenyan & Ugandan telcos)
 - **Storage:** Cloudflare R2 — crop photos uploaded directly from the client (pre-signed URLs)
 
 ---
@@ -113,20 +112,10 @@ Copy `.env.local.example` to `.env.local`. All `NEXT_PUBLIC_` variables are safe
 | `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | Yes | `DiraBot` |
 | `NEXT_PUBLIC_VOUCHERS_ACTIVE` | Yes | `false` until first agro-dealer MOU signed |
 | `NEXT_PUBLIC_DIRA_CIRCLE_ACTIVE` | Yes | `false` until first county coordinator confirmed |
-| `NEXT_PUBLIC_DARAJA_ACTIVE` | Yes | `false` until Daraja production credentials approved AND first B2B revenue received |
-| `NEXT_PUBLIC_XION_TREASURY_CONTRACT_ADDRESS` | Yes | Treasury Contract Address deployed on the XION Developer Portal |
-| `NEXT_PUBLIC_XION_RPC_URL` | No | XION network RPC endpoint (`https://rpc.xion-testnet-2.burnt.com:443` in development) |
+| `NEXT_PUBLIC_PRETIUM_ACTIVE` | Yes | `false` until Pretium integration is confirmed active |
+| `NEXT_PUBLIC_HEDERA_TOKEN_ID` | Yes | HTS Climate Token ID |
 
-**Never set `NEXT_PUBLIC_DARAJA_ACTIVE=true` in development.** This flag controls whether the M-Pesa redemption UI is shown to real users. It defaults to `false` and is activated only through a documented production process.
 
-### XION Treasury Contract Setup
-
-To enable gasless user transactions sponsored by the Dira platform, you must configure a Treasury Contract:
-1. **Developer Portal:** Log in or create an account at the [XION Developer Portal](https://app.dev.testnet.burnt.com).
-2. **Deploy Treasury:** Create a new Treasury contract and configure a Fee Grant using the `/cosmwasm.feegrant.v1beta1.BasicAllowance` option.
-3. **Redirect URL:** Set the OAuth Redirect URL to `https://app.diraafrica.org` (for production) or `http://localhost:3000` (for local development).
-4. **Gas Sponsorship:** Fund the newly deployed Treasury Contract address with XION to cover user transaction fee grants.
-5. **Configuration:** Copy the Treasury contract address and save it to `NEXT_PUBLIC_XION_TREASURY_CONTRACT_ADDRESS` in `.env.local`.
 
 ---
 
@@ -155,7 +144,7 @@ For security vulnerabilities, do **not** open a public issue. Email **security@d
 | [GitHub Discussions](https://github.com/dira-africa/dira-core/discussions) | Architecture questions and ideas |
 | community@diraafrica.org | General inquiries |
 | security@diraafrica.org | Security vulnerabilities (private) |
-| conduct@diraafrica.org | Code of Conduct reports (private) |
+| conduct@dira.africa | Code of Conduct reports (private) |
 
 ---
 
