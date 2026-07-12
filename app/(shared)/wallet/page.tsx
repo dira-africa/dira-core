@@ -146,7 +146,7 @@ export default function WalletPage() {
   // Active environments flags
   const isVouchersActive = process.env.VOUCHERS_ACTIVE === "true" || process.env.NEXT_PUBLIC_VOUCHERS_ACTIVE === "true";
   const isDiraCircleActive = process.env.DIRA_CIRCLE_ACTIVE === "true" || process.env.NEXT_PUBLIC_DIRA_CIRCLE_ACTIVE === "true";
-  const isDarajaActive = process.env.DARAJA_PRODUCTION_ACTIVE === "true" || process.env.NEXT_PUBLIC_DARAJA_PRODUCTION_ACTIVE === "true" || process.env.NEXT_PUBLIC_DARAJA_ACTIVE === "true";
+  const isPretiumActive = false; // Pretium mobile money pending P2.3
 
   const t = walletTranslations[locale === "sw" ? "sw" : "en"];
 
@@ -496,7 +496,7 @@ export default function WalletPage() {
 
             {/* Card 4: M-Pesa */}
             <div className={`border rounded-2xl p-4 flex justify-between items-center transition-all duration-300 ${
-              isDarajaActive 
+              isPretiumActive 
                 ? "bg-orange-500/10 border-orange-500/30 hover:border-orange-500/50 hover:scale-[1.01]" 
                 : "bg-white/[0.02] border-white/5 opacity-60"
             }`}>
@@ -504,11 +504,11 @@ export default function WalletPage() {
                 <div className="flex items-center space-x-1.5">
                   <span className="text-xs font-extrabold text-orange-400 uppercase tracking-wider">M-PESA 📱</span>
                   <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                    isDarajaActive 
+                    isPretiumActive 
                       ? "bg-orange-500/20 border border-orange-500/30 text-orange-400"
                       : "bg-white/10 text-white/40 border border-white/10"
                   }`}>
-                    {isDarajaActive ? t.available : t.comingSoon}
+                    {isPretiumActive ? t.available : t.comingSoon}
                   </span>
                 </div>
                 <p className="text-[10px] text-white/50 font-medium">
@@ -518,7 +518,7 @@ export default function WalletPage() {
                   {t.ratesLabel} {rates ? rates.mpesa.toFixed(2) : "0.50"}
                 </p>
               </div>
-              {isDarajaActive ? (
+              {isPretiumActive ? (
                 <Link href="/wallet/redeem/mpesa">
                   <button className="px-4 py-2 bg-orange-600 hover:bg-orange-700 active:scale-[0.98] rounded-xl text-xs font-black transition-all tracking-wider uppercase">
                     KOMBOA

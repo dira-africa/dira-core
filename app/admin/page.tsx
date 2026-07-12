@@ -247,9 +247,9 @@ interface Distribution {
 interface Anchor {
   week_number: number;
   batch_hash: string;
-  xion_tx_hash: string;
-  zkverify_proof_id: string;
-  zkverify_tx_hash: string;
+  hcs_tx_id: string;
+  hcs_sequence_number: string;
+  hts_tx_id: string;
   anchored_at: string;
 }
 
@@ -259,9 +259,9 @@ interface Certificate {
   county_code: string;
   condition_type: string;
   confidence_threshold: string;
-  xion_tx_hash: string;
-  zkverify_proof_id: string;
-  zkverify_tx_hash: string;
+  hcs_tx_id: string;
+  hcs_sequence_number: string;
+  hts_tx_id: string;
   created_at: string;
 }
 
@@ -461,9 +461,9 @@ export default function AdminPage() {
   // ----------------------------------------------------
   // MODULE 5: MPESA ACTIVATION STATE
   // ----------------------------------------------------
-  const [darajaProductionActive, setDarajaProductionActive] = useState<boolean | null>(null);
+  const [pretiumActive, setPretiumActive] = useState<boolean | null>(null);
   const [mpesaChecklist, setMpesaChecklist] = useState({
-    daraja_credentials_approved: false,
+    pretium_credentials_approved: false,
     first_b2b_revenue_received: false
   });
   const [mpesaFailedRedemptions, setMpesaFailedRedemptions] = useState<Redemption[]>([]);
@@ -637,8 +637,8 @@ export default function AdminPage() {
         if (settingsRes) {
           const json = await settingsRes.json();
           if (json.success) {
-            setDarajaProductionActive(json.darajaProductionActive);
-            setMpesaChecklist(json.settings || { daraja_credentials_approved: false, first_b2b_revenue_received: false });
+            setPretiumActive(json.pretiumActive);
+            setMpesaChecklist(json.settings || { pretium_credentials_approved: false, first_b2b_revenue_received: false });
           }
         }
         const failedRes = await authenticatedFetch("/api/admin/financials?page=1&limit=50&status=failed");
@@ -647,7 +647,7 @@ export default function AdminPage() {
           if (json.success) setMpesaFailedRedemptions(json.redemptions || json.failed || []);
         }
       } else if (activeTab === "reports") {
-        const res = await authenticatedFetch("/api/admin/xion-zkverify/status");
+        const res = await authenticatedFetch("/api/admin/hedera/status");
         if (res) {
           const json = await res.json();
           if (json.success) {
@@ -1044,7 +1044,7 @@ export default function AdminPage() {
     setActionLoading(true);
 
     try {
-      const res = await authenticatedFetch("/api/admin/xion-zkverify/anchor", { method: "POST" });
+      const res = await authenticatedFetch("/api/admin/hedera/anchor", { method: "POST" });
       if (res) {
         const data = await res.json();
         if (res.ok) {
@@ -1068,7 +1068,7 @@ export default function AdminPage() {
     setActionLoading(true);
 
     try {
-      const res = await authenticatedFetch("/api/admin/xion-zkverify/certificate", {
+      const res = await authenticatedFetch("/api/admin/hedera/certificate", {
         method: "POST",
         body: JSON.stringify({
           countyCode: certForm.countyCode.trim().toUpperCase(),
@@ -1538,7 +1538,7 @@ export default function AdminPage() {
             { id: "circle", label: "County Payouts (Circle)" },
             { id: "agro-dealers", label: "Agro-Dealers" },
             { id: "mpesa-activation", label: "M-Pesa Activation" },
-            { id: "reports", label: "XION & Partner Reports" },
+            { id: "reports", label: "Hedera & Partner Reports" },
             { id: "jobs", label: "Background Workers" }
           ].map((tab) => (
             <button
@@ -2624,34 +2624,34 @@ export default function AdminPage() {
           )}
 
           {/* --------------------------------------------------
-              TAB 4C: SAFARICOM DARAJA B2C ACTIVATION & RETRY
+              TAB 4C: PRETIUM MOBILE MONEY ACTIVATION & RETRY
               -------------------------------------------------- */}
           {activeTab === "mpesa-activation" && (
             <div className="space-y-8">
               <div className="space-y-1 border-b border-white/5 pb-4">
-                <h2 className="text-md font-bold text-white/90">M-Pesa Production B2C Gateway</h2>
-                <p className="text-xs text-white/50">Monitor production Safaricom Daraja activation checklists and manually retry failed cashouts.</p>
+                <h2 className="text-md font-bold text-white/90">Pretium Mobile Money Gateway</h2>
+                <p className="text-xs text-white/50">Monitor production Pretium mobile money activation status and manually retry failed cashouts.</p>
               </div>
 
               {/* Status & Checklist Section */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Gateway Status Indicators */}
                 <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
-                  <h3 className="text-sm font-bold text-white">Daraja API Channel Status</h3>
+                  <h3 className="text-sm font-bold text-white">Pretium API Channel Status</h3>
                   <div className="flex items-center space-x-4">
-                    <div className={`h-3 w-3 rounded-full ${darajaProductionActive ? "bg-emerald-500 animate-pulse shadow-md shadow-emerald-500/50" : "bg-amber-500"}`} />
+                    <div className={`h-3 w-3 rounded-full ${pretiumActive ? "bg-emerald-500 animate-pulse shadow-md shadow-emerald-500/50" : "bg-amber-500"}`} />
                     <div>
                       <div className="text-xs font-bold text-white uppercase">
-                        {darajaProductionActive ? "PRODUCTION STAGE READY" : "SANDBOX INTERFACE ONLY"}
+                        {pretiumActive ? "PRODUCTION STAGE READY" : "SANDBOX INTERFACE ONLY"}
                       </div>
-                      <p className="text-[9px] text-white/40 font-mono">Flag: DARAJA_PRODUCTION_ACTIVE</p>
+                      <p className="text-[9px] text-white/40 font-mono">Flag: PRETIUM_ACTIVE</p>
                     </div>
                   </div>
 
                   <div className="bg-black/25 rounded-2xl p-4 border border-white/5 space-y-2">
-                    <h4 className="text-[10px] uppercase font-bold text-white/50">M-Pesa B2C Gateway Rule</h4>
+                    <h4 className="text-[10px] uppercase font-bold text-white/50">Pretium Mobile Money Rule</h4>
                     <p className="text-[10px] text-white/70 leading-relaxed">
-                      Safaricom Daraja B2C M-Pesa is flag-gated. Automatic processing will ONLY execute when the environment flag is true and the activation checklist below is fully verified.
+                      Pretium mobile money cashout is flag-gated. Automatic processing will ONLY execute when the environment flag is true and the activation checklist below is fully verified.
                     </p>
                   </div>
                 </div>
@@ -2663,13 +2663,13 @@ export default function AdminPage() {
                     <div className="flex items-start space-x-3 bg-black/10 p-3 rounded-xl border border-white/5">
                       <input
                         type="checkbox"
-                        id="daraja_credentials"
-                        checked={mpesaChecklist.daraja_credentials_approved}
-                        onChange={() => handleToggleMpesaSetting("daraja_credentials_approved", mpesaChecklist.daraja_credentials_approved)}
+                        id="pretium_credentials"
+                        checked={mpesaChecklist.pretium_credentials_approved}
+                        onChange={() => handleToggleMpesaSetting("pretium_credentials_approved", mpesaChecklist.pretium_credentials_approved)}
                         className="h-4 w-4 rounded border-white/10 bg-white/5 text-primary focus:ring-primary/50 mt-0.5"
                       />
-                      <label htmlFor="daraja_credentials" className="text-xs space-y-0.5 cursor-pointer select-none">
-                        <div className="font-semibold text-white">Safaricom Daraja production API credentials approved by network architect</div>
+                      <label htmlFor="pretium_credentials" className="text-xs space-y-0.5 cursor-pointer select-none">
+                        <div className="font-semibold text-white">Pretium production API credentials approved by network architect</div>
                         <p className="text-[10px] text-white/40">Verifies that the consumer key, consumer secret, shortcode, and passkey have been secured and tested.</p>
                       </label>
                     </div>
@@ -2925,10 +2925,10 @@ export default function AdminPage() {
                 )}
               </div>
 
-              {/* XION & zkVerify blockchain weekly anchors trigger */}
+              {/* Hedera blockchain weekly anchors trigger */}
               <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-white">XION & zkVerify Blockchain Weekly Merkle Anchoring</h3>
+                  <h3 className="text-sm font-bold text-white">Hedera Blockchain Weekly Merkle Anchoring</h3>
                   <p className="text-xs text-white/50">Triggers automated background anchoring of verified crop and weather data batches for ended weeks.</p>
                 </div>
                 <button
@@ -2943,7 +2943,7 @@ export default function AdminPage() {
               {/* Certificate formulation form */}
               <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 space-y-4">
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-white">Issue zkVerify ZK Data Compliance Certificate</h3>
+                  <h3 className="text-sm font-bold text-white">Issue Hedera Data Compliance Certificate</h3>
                   <p className="text-xs text-white/50">Submit a county climate quality certificate contract transaction permanently on-chain.</p>
                 </div>
                 <form onSubmit={handleIssueCertificate} className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
@@ -3002,9 +3002,9 @@ export default function AdminPage() {
 
               {/* Anchors and certificates summaries */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Midnight Anchors */}
+                {/* Hedera Anchors */}
                 <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-white/90">Latest XION Anchors</h3>
+                  <h3 className="text-sm font-bold text-white/90">Latest Hedera Anchors</h3>
                   <div className="overflow-x-auto border border-white/10 rounded-xl max-h-[220px] overflow-y-auto">
                     <table className="w-full text-[10px] text-left border-collapse font-mono">
                       <thead>
@@ -3024,7 +3024,7 @@ export default function AdminPage() {
                             <tr key={an.week_number} className="hover:bg-white/[0.01]">
                               <td className="p-3 font-semibold text-white">{an.week_number}</td>
                               <td className="p-3 truncate max-w-[120px]" title={an.batch_hash}>{an.batch_hash}</td>
-                              <td className="p-3 truncate max-w-[120px]" title={an.xion_tx_hash}>{an.xion_tx_hash}</td>
+                              <td className="p-3 truncate max-w-[120px]" title={an.hcs_tx_id}>{an.hcs_tx_id || "—"}</td>
                             </tr>
                           ))
                         )}

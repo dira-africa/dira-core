@@ -14,15 +14,10 @@ The user experience is pure Web2: identity comes from Telegram, and all
 blockchain work happens server-side in `dira-api` on **Hedera (HCS + HTS)**.
 Farmers never hold keys, wallets, or seed phrases.
 
-## Migration in progress — remove XION
-This app currently ships **XION account abstraction**, which must be removed:
-- Remove `@burnt-labs/abstraxion` and `@burnt-labs/ui` from `package.json`.
-- Remove `components/XionProvider.tsx` and any `useAbstraxion`/Xion usage.
-- Remove `NEXT_PUBLIC_XION_*` from `.env.local.example` and all references.
-- KEEP `components/TelegramProvider.tsx` and `@twa-dev/sdk` — Telegram is the
-  identity and entry point.
-- The **wallet** screens become **custodial**: show the balance and redemption
-  options fetched from `dira-api`; there is no on-chain wallet in the client.
+## Migration status — XION removal (COMPLETED)
+The XION account abstraction (`@burnt-labs/abstraxion`, `XionProvider.tsx`) has
+been fully removed. The app now uses a custodial model with no on-chain wallet.
+If you encounter any residual XION / `@burnt-labs/*` references, remove them.
 
 ## Stack & conventions
 - **Framework:** Next.js 14 App Router, React 18, TypeScript. Dev: `npm run dev`.

@@ -106,4 +106,28 @@ Active development, testnet-first. The wallet and redemption flows are being wir
 
 ## License
 
-[Apache License 2.0](./LICENSE) © Dira Africa.
+## Community and support
+
+| Channel | Purpose |
+|---|---|
+| [GitHub Issues](https://github.com/dira-africa/dira-core/issues) | Bug reports and feature requests |
+| [GitHub Discussions](https://github.com/dira-africa/dira-core/discussions) | Architecture questions and ideas |
+| community@diraafrica.org | General inquiries |
+| security@diraafrica.org | Security vulnerabilities (private) |
+| conduct@dira.africa | Code of Conduct reports (private) |
+
+---
+
+## Related repositories
+
+* **[`dira-core`](https://github.com/dira-africa/dira-core)** — Telegram Mini App frontend. Next.js 14 App Router + @twa-dev/sdk. Onboarding, capture (with device barometer), reports, wallet/redeem, maps, dashboards, English/Swahili.
+* **[`dira-api`](https://github.com/dira-africa/dira-api)** — the backend. Fastify + TypeScript, raw SQL migrations via pg, BullMQ + Redis, Zod env, pgcrypto PII. Services cover AI verification, triangulation, tokens (internal ledger), airtime, Dira Circle, vouchers, B2B/partner, DPA and the public dashboard. Anchoring via Hedera HCS/HTS; cash-out via Pretium mobile money.
+* **[`dira-docs`](https://github.com/dira-africa/dira-docs)** — docs & evidence room. Architecture, OpenAPI, reviewer guide. Hedera-native.
+
+---
+
+## Licence
+
+Apache 2.0 — see [LICENSE](LICENSE).
+
+*Dira Africa Limited, 2026.*

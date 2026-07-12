@@ -130,10 +130,10 @@ export default function Home() {
           {locale === "en" ? "Application Error Alerts" : "Arifa za Hitilafu za Programu"}
         </h2>
         <div className="space-y-3">
-          {["network", "barometer", "gps", "daraja"].map((err) => (
+          {["network", "barometer", "gps"].map((err) => (
             <div key={err} className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 space-y-1">
               <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">
-                {err === "daraja" ? "MPESA / B2C GATEWAY" : err}
+                {err}
               </span>
               <p className="text-xs text-white/80 leading-normal">
                 {t(`error.${err}` as TranslationKey)}

@@ -81,10 +81,12 @@ interface QualityMetric {
   networkConsensusRate: number;
 }
 
-interface XionAnchor {
+interface HederaAnchor {
   weekNumber: number;
   batchHash: string;
-  xionTxHash: string;
+  hcsTxId?: string;
+  hcsSequenceNumber?: string;
+  htsTxId?: string;
   anchoredAt: string;
 }
 
@@ -121,15 +123,15 @@ const localT = {
     feedSub: "Live platform verification updates from the field",
     feedFarmer: "A farmer in {county} submitted a verified {crop} photo {time}",
     feedAgent: "A data agent in {county} synced atmospheric readings {time}",
-    midnightTitle: "XION & zkVerify Blockchain Verification Panel",
-    midnightSub: "Weekly Merkle-tree anchoring hashes recorded on the XION & zkVerify networks",
+    midnightTitle: "Hedera Blockchain Verification Panel",
+    midnightSub: "Weekly Merkle-tree anchoring hashes recorded on the Hedera network",
     midnightWeek: "Week No",
     midnightBatch: "Batch Merkle Root",
-    midnightTx: "XION Tx Hash",
+    midnightTx: "HCS Tx ID",
     midnightDate: "Anchored Date",
     midnightVerifyBtn: "Verify Independently",
     midnightVerifyInstructionsTitle: "How to Verify Independently",
-    midnightVerifyInstructions: "1. Download the raw anonymized CSV batch for the targeted Week Number from Dira's open data archive.\n2. Compute the double SHA-256 Merkle Root of the reading UUIDs sorted alphabetically.\n3. Compare your calculated Merkle Root hash against the 'Batch Merkle Root' above stored permanently on XION and verified on zkVerify.",
+    midnightVerifyInstructions: "1. Download the raw anonymized CSV batch for the targeted Week Number from Dira's open data archive.\n2. Compute the double SHA-256 Merkle Root of the reading UUIDs sorted alphabetically.\n3. Compare your calculated Merkle Root hash against the 'Batch Merkle Root' stored permanently on the Hedera network.",
     footerText: "Dira Africa is a Decentralised Physical Infrastructure Network (DePIN) turning smartphones into a distributed weather sensing network.",
     footerBadge: "Apache 2.0 License • Open Source for Climate Resilience",
     openApi: "Developer API Docs",
@@ -166,15 +168,15 @@ const localT = {
     feedSub: "Taarifa za uthibitishaji wa moja kwa moja bila kutaja majina",
     feedFarmer: "Mkulima huko {county} ametuma picha ya {crop} iliyothibitishwa {time}",
     feedAgent: "Wakala wa data huko {county} amesawazisha vipimo vya hewa {time}",
-    midnightTitle: "Uthibitishaji wa XION & zkVerify Blockchain",
-    midnightSub: "Mihuri ya kila wiki ya Merkle-tree iliyohifadhiwa kwenye mtandao wa XION & zkVerify",
+    midnightTitle: "Uthibitishaji wa Hedera Blockchain",
+    midnightSub: "Mihuri ya kila wiki ya Merkle-tree iliyohifadhiwa kwenye mtandao wa Hedera",
     midnightWeek: "Wiki",
     midnightBatch: "Chapa ya Merkle Root",
-    midnightTx: "Miamala ya XION",
+    midnightTx: "Miamala ya HCS",
     midnightDate: "Tarehe ya Muhuri",
     midnightVerifyBtn: "Thibitisha Mwenyewe",
     midnightVerifyInstructionsTitle: "Jinsi ya Kuthibitisha Mwenyewe",
-    midnightVerifyInstructions: "1. Pakua faili la CSV la data ya wiki husika kutoka kwenye kumbukumbu ya data ya Dira.\n2. Kokotoa Merkle Root ya UUID za vipimo zilizopangwa kialfabeti kwa kutumia SHA-256.\n3. Linganisha chapa yako ya Merkle Root na 'Chapa ya Merkle Root' iliyohifadhiwa kwenye mtandao salama wa XION na kuthibitishwa kwenye zkVerify.",
+    midnightVerifyInstructions: "1. Pakua faili la CSV la data ya wiki husika kutoka kwenye kumbukumbu ya data ya Dira.\n2. Kokotoa Merkle Root ya UUID za vipimo zilizopangwa kialfabeti kwa kutumia SHA-256.\n3. Linganisha chapa yako ya Merkle Root na 'Chapa ya Merkle Root' iliyohifadhiwa kwenye mtandao salama wa Hedera.",
     footerText: "Dira Africa ni Mtandao wa Miundombinu ya Kifaa ya Kusambazwa (DePIN) inayogeuza simu janja kuwa mtandao wa ufuatiliaji wa hali ya hewa.",
     footerBadge: "Leseni ya Apache 2.0 • Chanzo Wazi kwa Ustahimilivu wa Tabianchi",
     openApi: "Nyaraka za API za Msanidi Programu",
@@ -197,7 +199,7 @@ export default function PublicDashboard() {
   const [economy, setEconomy] = useState<EconomySummary | null>(null);
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
   const [quality, setQuality] = useState<QualityMetric[]>([]);
-  const [anchors, setAnchors] = useState<XionAnchor[]>([]);
+  const [anchors, setAnchors] = useState<HederaAnchor[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [mapLoading, setMapLoading] = useState(true);
@@ -216,7 +218,7 @@ export default function PublicDashboard() {
         fetch(`${API_URL}/public/circular-economy-summary`),
         fetch(`${API_URL}/public/activity-feed`),
         fetch(`${API_URL}/public/quality-metrics`),
-        fetch(`${API_URL}/public/xion-anchors`)
+        fetch(`${API_URL}/public/hedera-anchors`)
       ]);
 
       const statsJson = await statsRes.json();
@@ -752,7 +754,7 @@ export default function PublicDashboard() {
           </div>
         </section>
 
-        {/* Section 4: XION & zkVerify ZK Verification */}
+        {/* Section 4: Hedera Blockchain Verification */}
         <section className="bg-white/[0.03] border border-white/10 rounded-3xl p-6 shadow-xl space-y-6">
           <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
             <div className="space-y-1">
@@ -790,7 +792,7 @@ export default function PublicDashboard() {
                 {anchors.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="p-8 text-center text-white/30 text-xs">
-                      No anchors uploaded on the XION ledger.
+                      No anchors recorded on the Hedera network.
                     </td>
                   </tr>
                 ) : (
@@ -799,14 +801,18 @@ export default function PublicDashboard() {
                       <td className="p-4 font-bold text-white/90">{anch.weekNumber}</td>
                       <td className="p-4 text-white/70 break-all select-all font-mono">{anch.batchHash}</td>
                       <td className="p-4 break-all font-mono">
-                        <a
-                          href={`https://explorer.burnt.com/xion/tx/${anch.xionTxHash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          {anch.xionTxHash}
-                        </a>
+                        {anch.hcsTxId ? (
+                          <a
+                            href={`https://hashscan.io/testnet/transaction/${anch.hcsTxId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            {anch.hcsTxId}
+                          </a>
+                        ) : (
+                          <span className="text-white/30">—</span>
+                        )}
                       </td>
                       <td className="p-4 text-white/50">{new Date(anch.anchoredAt).toLocaleString()}</td>
                     </tr>

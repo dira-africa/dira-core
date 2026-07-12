@@ -113,10 +113,10 @@ export default function PrivacyPolicyPage() {
               </p>
 
               <h2 className="text-sm font-bold text-white pt-2 border-t border-white/5">
-                4. Data Protection & XION / zkVerify Blockchain
+                4. Data Protection & Hedera Blockchain
               </h2>
               <p>
-                Data integrity is anchored weekly to the XION blockchain and verified using zkVerify ZK proof systems. This anchoring uses CosmWasm smart contracts to verify datasets without exposing any personal identifiers, names, or GPS locations publicly. All phone numbers are locked using encryption keys kept strictly off-database.
+                Data integrity is anchored weekly to the Hedera blockchain via the Hedera Consensus Service (HCS). This anchoring creates immutable, timestamped records of weather datasets without exposing any personal identifiers, names, or GPS locations publicly. All phone numbers are locked using encryption keys kept strictly off-database.
               </p>
 
               <h2 className="text-sm font-bold text-white pt-2 border-t border-white/5">
@@ -192,10 +192,10 @@ export default function PrivacyPolicyPage() {
               </p>
 
               <h2 className="text-sm font-bold text-white pt-2 border-t border-white/5">
-                4. Ulinzi wa Data & XION / zkVerify Blockchain
+                4. Ulinzi wa Data & Hedera Blockchain
               </h2>
               <p>
-                Uaminifu wa data unathibitishwa kila wiki kwenye blockchain ya XION kwa kutumia mikataba ya CosmWasm na kuthibitishwa kwenye mtandao wa zkVerify. Mchakato huu haufichui jina, nambari ya simu, au eneo halisi la GPS la mtumiaji yeyote kwa umma.
+                Uaminifu wa data unathibitishwa kila wiki kwenye blockchain ya Hedera kwa kutumia Hedera Consensus Service (HCS). Mchakato huu haufichui jina, nambari ya simu, au eneo halisi la GPS la mtumiaji yeyote kwa umma.
               </p>
 
               <h2 className="text-sm font-bold text-white pt-2 border-t border-white/5">
