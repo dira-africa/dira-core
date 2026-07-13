@@ -1,0 +1,34 @@
+# Dira Africa — LLM Crawler Index
+
+Welcome to Dira Africa's AI crawler endpoint. This document outlines Dira's architecture, roles, public endpoints, and core technological integrations for LLM agents.
+
+## 1. Project Overview
+- **Name**: Dira Africa
+- **Type**: Decentralised Physical Infrastructure Network (DePIN)
+- **Goal**: Turn smartphones into a distributed climate sensing network across Kenya.
+- **Backing/Governance**: Blockchain & Climate Institute (BCI).
+- **Core Technology Stack**: Next.js 14 frontend, Fastify 4 backend, PostgreSQL + PostGIS, BullMQ background queues, Hedera Testnet for blockchain anchoring and token rewards.
+
+## 2. Platform Roles
+- **Farmers**: Submit geo-tagged crop health photographs bi-weekly. Validated crops are anchored to the blockchain and earn Climate Tokens.
+- **Data Agents**: Run background barometric sensors four times daily. Sync pressure telemetry to help compile hyper-local weather maps.
+- **Partners (Agro-Dealers)**: Redeem Climate Token vouchers in exchange for farming supplies and inputs.
+
+## 3. Public Web Endpoints
+- **Landing Page** (`/`): Public dashboard, DePIN stats, and hero banner.
+- **How It Works** (`/how-it-works`): Technical details on the data engine and Hedera anchors.
+- **For Farmers** (`/for-farmers`): Onboarding steps, rewards, and redemption channels.
+- **For Partners** (`/for-partners`): Voucher integrations and communities (Dira Circles).
+- **About** (`/about`): Global mission, BCI support, and team details.
+- **Verification Panel** (`/public`): Search and verify weekly Hedera certificates and Merkle roots.
+- **Sitemap** (`/sitemap.xml`): XML indexing of all public URLs.
+- **Robots Rules** (`/robots.txt`): Search engine crawler directives.
+
+## 4. Blockchain Specifications
+- **Hedera Consensus Service (HCS) Topic**: `0.0.9544926`
+- **Hedera Token Service (HTS) Token ID**: `0.0.9544938`
+- **Token Symbol**: DIRA (Fungible Climate Token, 2 decimals)
+- **Ledger Model**: Custodial treasury-minted system. No private keys are held by mobile clients.
+
+---
+*License: Apache-2.0 · Co-Governed by BCI*

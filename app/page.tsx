@@ -1,153 +1,174 @@
-"use client";
+/*
+ * Copyright 2026 Dira Africa
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import { useState } from "react";
-import { useTelegram } from "@/components/TelegramProvider";
-import { useTranslation } from "@/lib/i18n/useTranslation";
-import { TranslationKey } from "@/lib/i18n/translations";
-import LoadingSkeleton, { SkeletonType } from "@/components/ui/LoadingSkeleton";
+import type { Metadata } from "next";
+import Link from "next/link";
+import PublicNav from "@/components/PublicNav";
+import PublicFooter from "@/components/PublicFooter";
 
-export default function Home() {
-  const sdk = useTelegram();
-  const { t, locale, setLocale } = useTranslation();
-  const [selectedSkeleton, setSelectedSkeleton] = useState<SkeletonType>("wallet");
+export const metadata: Metadata = {
+  title: "Dira Africa — Decentralised Physical Weather Sensing Network",
+  description: "Dira Africa is a DePIN network converting smartphones into weather sensors across Kenya. Earn Climate Tokens for verified crop reports and pressure tracking.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Dira Africa — Decentralised Physical Weather Sensing Network",
+    description: "Participate in Kenya's smartphone weather DePIN. Verify crops, share barometric telemetry, and earn Climate Tokens.",
+    url: "https://dira.africa",
+    siteName: "Dira Africa",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dira Africa — Decentralised Physical Weather Sensing Network",
+    description: "Participate in Kenya's smartphone weather DePIN. Verify crops, share barometric telemetry, and earn Climate Tokens.",
+  },
+};
 
-  // Retrieve user data from Telegram if available
-  const tgUser = sdk?.initDataUnsafe?.user;
+export default function LandingPage() {
+  const features = [
+    {
+      icon: "📡",
+      title: "Decentralized Physical Sensing (DePIN)",
+      desc: "Harnessing local barometric sensors in millions of smartphones to map weather observations at a hyper-local scale across Kenya."
+    },
+    {
+      icon: "🌾",
+      title: "AI Crop Health Audits",
+      desc: "Automated verification pipelines analyzing farm status photographically, validating crop stages, and tracking agricultural health parameters."
+    },
+    {
+      icon: "⛓",
+      title: "Public Accountability on Hedera",
+      desc: "Anchoring crop certifications on Hedera Consensus Service (HCS) and distributing rewards via Hedera Token Service (HTS)."
+    }
+  ];
+
+  const stats = [
+    { value: "47", label: "Counties Covered" },
+    { value: "15,200+", label: "Active Mobile Sensors" },
+    { value: "100k+", label: "Climate Proofs Anchored" },
+    { value: "500k+", label: "DIRA Rewards Minted" }
+  ];
 
   return (
-    <main className="flex-1 w-full max-w-md mx-auto p-4 flex flex-col space-y-6 bg-gradient-to-b from-[#1A1A6E]/30 to-[#0A6E56]/10 text-white min-h-screen">
-      {/* Header */}
-      <header className="flex justify-between items-center py-2">
-        <div className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center font-bold text-lg text-white shadow-md shadow-primary/20">
-            D
-          </div>
-          <span className="font-extrabold text-xl tracking-wide bg-gradient-to-r from-white to-primary/80 bg-clip-text text-transparent">
-            Dira Africa
-          </span>
-        </div>
+    <div className="flex flex-col min-h-screen bg-[#0e0e26] text-white">
+      <PublicNav />
 
-        {/* Language Toggler */}
-        <div className="flex space-x-1 bg-white/5 p-1 rounded-xl border border-white/10">
-          <button
-            onClick={() => setLocale("en")}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-              locale === "en" ? "bg-primary text-white" : "text-white/60 hover:text-white"
-            }`}
-          >
-            EN
-          </button>
-          <button
-            onClick={() => setLocale("sw")}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-              locale === "sw" ? "bg-primary text-white" : "text-white/60 hover:text-white"
-            }`}
-          >
-            SW
-          </button>
-        </div>
-      </header>
+      {/* Main Content */}
+      <main className="flex-grow">
+        
+        {/* Hero Section */}
+        <section className="relative overflow-hidden py-24 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#1A1A6E]/40 to-transparent">
+          {/* Animated Background Gradients */}
+          <div className="absolute top-10 left-1/4 w-96 h-96 bg-[#0A6E56]/15 rounded-full blur-3xl -z-10 animate-pulse" />
+          <div className="absolute top-20 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -z-10" />
 
-      {/* Navigation Preview Block */}
-      <section className="bg-white/5 rounded-2xl border border-white/10 p-4 space-y-3">
-        <h2 className="text-xs font-bold text-primary tracking-widest uppercase">
-          {locale === "en" ? "Navigation Index" : "Kielezo cha Urambazaji"}
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          {["onboarding", "home", "wallet", "settings", "leaderboard"].map((item) => (
-            <span
-              key={item}
-              className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-xs text-white/70"
-            >
-              {t(`nav.${item}` as TranslationKey)}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {/* Telegram Connection Details */}
-      <section className="bg-white/5 rounded-2xl border border-white/10 p-5 space-y-4 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/20 rounded-full blur-2xl -z-10" />
-        <h2 className="text-sm font-bold text-white/90">
-          {locale === "en" ? "Telegram WebView Status" : "Hali ya Telegram WebView"}
-        </h2>
-
-        {tgUser ? (
-          <div className="flex items-center space-x-3 bg-white/5 p-3 rounded-xl border border-white/5">
-            <div className="h-10 w-10 rounded-full bg-primary/30 flex items-center justify-center font-bold text-primary">
-              {tgUser.first_name ? tgUser.first_name[0] : "U"}
-            </div>
-            <div>
-              <p className="text-xs text-white/50">{locale === "en" ? "User Account" : "Akaunti ya Mtumiaji"}</p>
-              <p className="text-sm font-bold text-white">
-                {tgUser.first_name} {tgUser.last_name || ""}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl space-y-2">
-            <p className="text-xs font-semibold text-amber-400">
-              {locale === "en" ? "Not running inside Telegram WebView" : "Haitumiki ndani ya WebView ya Telegram"}
+          <div className="max-w-5xl mx-auto text-center space-y-8">
+            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-none bg-gradient-to-r from-white via-emerald-300 to-emerald-500 bg-clip-text text-transparent">
+              Turning Smartphones Into <br className="hidden sm:inline" />
+              Kenya's Weather Sensing Network
+            </h1>
+            <p className="text-base sm:text-xl text-white/70 max-w-3xl mx-auto leading-relaxed">
+              Dira is a Decentralised Physical Infrastructure Network (DePIN) co-governed under Blockchain & Climate Institute (BCI). We crowdsource barometric and crop observations to mitigate micro-climate risks and distribute Climate Token rewards.
             </p>
-            <p className="text-[11px] text-white/60 leading-relaxed">
-              {locale === "en"
-                ? "The SDK is initialised but defaults to browser mockup. Open in Telegram Mini App for full capabilities."
-                : "SDK imewashwa lakini inatumia muundo wa kivinjari. Fungua kwenye Programu Ndogo ya Telegram kwa uwezo kamili."}
-            </p>
-          </div>
-        )}
-      </section>
 
-      {/* Reusable Loading Skeletons Section */}
-      <section className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-sm font-bold text-white/90">
-            {locale === "en" ? "Skeleton Loader Preview" : "Kipakiaji cha Mfumo"}
-          </h2>
-          <div className="flex space-x-1 bg-white/5 p-1 rounded-xl border border-white/5">
-            {(["wallet", "card", "list", "profile"] as SkeletonType[]).map((type) => (
-              <button
-                key={type}
-                onClick={() => setSelectedSkeleton(type)}
-                className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all capitalize ${
-                  selectedSkeleton === type ? "bg-primary text-white" : "text-white/60"
-                }`}
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
+              <Link
+                href="/home"
+                className="w-full sm:w-auto px-8 py-4 bg-[#0A6E56] hover:bg-[#085a46] text-white font-extrabold rounded-2xl shadow-lg shadow-[#0A6E56]/30 transition-all duration-200 transform hover:scale-[1.03] active:scale-[0.97]"
               >
-                {type}
-              </button>
+                Launch Dira App
+              </Link>
+              <Link
+                href="/how-it-works"
+                className="w-full sm:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold rounded-2xl transition-all duration-200"
+              >
+                How it Works
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Dynamic Stats Banner */}
+        <section className="py-12 bg-white/[0.01] border-y border-white/5 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              {stats.map((stat, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono tracking-tight">
+                    {stat.value}
+                  </div>
+                  <div className="text-xs sm:text-sm text-white/55 font-medium">
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features / Value Proposition */}
+        <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <h2 className="text-3xl sm:text-4xl font-extrabold">Next-Generation Climate Sensing</h2>
+            <p className="text-white/60 text-sm leading-relaxed">
+              We coordinate crowd-sourced data gathering across Kenya to power smart weather predictions, carbon audits, and index-based crop insurance.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 hover:border-emerald-500/20 hover:bg-white/[0.03] transition-all duration-300 relative group"
+              >
+                <div className="text-4xl mb-6">{feature.icon}</div>
+                <h3 className="text-xl font-bold mb-4">{feature.title}</h3>
+                <p className="text-white/60 text-xs sm:text-sm leading-relaxed">
+                  {feature.desc}
+                </p>
+              </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-4">
-          <LoadingSkeleton type={selectedSkeleton} />
-        </div>
-      </section>
+        {/* JSON-LD Structured Data Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "Dira Africa",
+              "applicationCategory": "BusinessApplication",
+              "operatingSystem": "iOS, Android, Web",
+              "description": "Decentralised Physical Infrastructure Network (DePIN) Weather sensing network across Kenya",
+              "offers": {
+                "@type": "Offer",
+                "price": "0.00",
+                "priceCurrency": "USD"
+              }
+            })
+          }}
+        />
+      </main>
 
-      {/* Error Dictionary Preview */}
-      <section className="bg-white/5 rounded-2xl border border-white/10 p-5 space-y-4">
-        <h2 className="text-sm font-bold text-white/90">
-          {locale === "en" ? "Application Error Alerts" : "Arifa za Hitilafu za Programu"}
-        </h2>
-        <div className="space-y-3">
-          {["network", "barometer", "gps"].map((err) => (
-            <div key={err} className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 space-y-1">
-              <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">
-                {err}
-              </span>
-              <p className="text-xs text-white/80 leading-normal">
-                {t(`error.${err}` as TranslationKey)}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-6 text-center text-xs text-white/40 space-y-1">
-        <p>Dira Africa Platform • Apache 2.0 License</p>
-        <p>© 2026 Dira Africa</p>
-      </footer>
-    </main>
+      <PublicFooter />
+    </div>
   );
 }

@@ -1,0 +1,17 @@
+{
+  "name": "Dira Africa",
+  "short_name": "Dira",
+  "description": "Decentralised Physical Infrastructure Network (DePIN) Weather sensing network across Kenya",
+  "start_url": "/home",
+  "display": "standalone",
+  "background_color": "#1A1A6E",
+  "theme_color": "#0A6E56",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

@@ -1,11 +1,12 @@
 "use client";
-
+ 
 import { useEffect, useState, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { authenticateWithTelegram, getStoredUser, isAuthenticated, User } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { trackPageView } from "@/lib/analytics";
 import LoadingSkeleton from "./ui/LoadingSkeleton";
-
+ 
 interface CustomWindow extends Window {
   Telegram?: {
     WebApp?: {
@@ -13,15 +14,15 @@ interface CustomWindow extends Window {
     };
   };
 }
-
+ 
 export default function AppInitializer({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { t, locale, setLocale } = useTranslation();
-
+ 
   const [status, setStatus] = useState<"initializing" | "authenticating" | "not-telegram" | "error" | "authenticated">("initializing");
   const [errorDetails, setErrorDetails] = useState<string>("");
-
+ 
   const handleRedirect = useCallback((user: User) => {
     if (user.isNewUser) {
       if (!pathname.startsWith("/onboarding")) {
@@ -38,7 +39,7 @@ export default function AppInitializer({ children }: { children: React.ReactNode
       }
     }
   }, [pathname, router]);
-
+ 
   const runAuth = useCallback(async () => {
     setStatus("authenticating");
     try {
@@ -51,28 +52,52 @@ export default function AppInitializer({ children }: { children: React.ReactNode
       setStatus("error");
     }
   }, [handleRedirect]);
-
+ 
+  // Track page views on route change
   useEffect(() => {
-    // Check if window is defined (client-side)
+    trackPageView();
+  }, [pathname]);
+ 
+  useEffect(() => {
     if (typeof window === "undefined") return;
-
-    // Allow bypassing Telegram checks for the privacy policy page, public dashboard and admin interface
-    if (pathname === "/privacy" || pathname.startsWith("/admin") || pathname === "/public") {
+ 
+    // Define all public marketing/informational routes
+    const isPublicRoute =
+      pathname === "/" ||
+      pathname === "/how-it-works" ||
+      pathname === "/for-farmers" ||
+      pathname === "/for-partners" ||
+      pathname === "/about" ||
+      pathname === "/blog" ||
+      pathname === "/privacy" ||
+      pathname === "/public" ||
+      pathname.startsWith("/admin");
+ 
+    if (isPublicRoute) {
       setStatus("authenticated");
       return;
     }
-
+ 
     const customWindow = window as unknown as CustomWindow;
     const tgWebApp = customWindow.Telegram?.WebApp;
     const initData = tgWebApp?.initData;
-
-    // Verify if we are running inside Telegram (must have initData)
+ 
+    // If not inside Telegram WebView (no initData)
     if (!initData) {
+      // Check if this is a standalone PWA launch with an existing valid session
+      if (isAuthenticated()) {
+        const user = getStoredUser();
+        if (user) {
+          handleRedirect(user);
+          return;
+        }
+      }
+      // Otherwise, block the protected route and show the Telegram prompt
       setStatus("not-telegram");
       return;
     }
-
-    // If already authenticated and the current path is correct, short circuit
+ 
+    // If inside Telegram and already authenticated, short-circuit redirect
     if (isAuthenticated()) {
       const user = getStoredUser();
       if (user) {
@@ -80,11 +105,11 @@ export default function AppInitializer({ children }: { children: React.ReactNode
         return;
       }
     }
-
-    // Otherwise, perform authentication
+ 
+    // Perform authentication inside Telegram
     runAuth();
   }, [handleRedirect, runAuth, pathname]);
-
+ 
   // Listen to pathname changes to complete redirection status
   useEffect(() => {
     if (status === "authenticating" || status === "initializing") {
@@ -94,6 +119,7 @@ export default function AppInitializer({ children }: { children: React.ReactNode
       }
     }
   }, [pathname, status, handleRedirect]);
+
 
   if (status === "initializing" || status === "authenticating") {
     return (
