@@ -324,7 +324,7 @@ export default function ReportsList() {
           </Link>
 
           {/* Wallet Tab */}
-          <Link href="/shared/wallet" className="flex flex-col items-center space-y-1 group">
+          <Link href="/wallet" className="flex flex-col items-center space-y-1 group">
             <svg
               className={`h-5 w-5 transition-transform group-hover:scale-110 text-white/50 group-hover:text-white/80`}
               fill="none"

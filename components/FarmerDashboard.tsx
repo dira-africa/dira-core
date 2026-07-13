@@ -276,7 +276,7 @@ export default function FarmerDashboard() {
                   KES {((balance || 0) * 0.55).toFixed(2)} ({locale === "en" ? "Airtime" : "Kadi"}) / KES {((balance || 0) * 0.50).toFixed(2)} ({locale === "en" ? "Cash" : "Pesa"})
                 </p>
               </div>
-              <Link href="/shared/wallet">
+              <Link href="/wallet">
                 <button className="px-4 py-2 bg-white text-primary rounded-xl text-xs font-black shadow-md hover:bg-white/95 active:scale-[0.98] transition-all uppercase tracking-wider">
                   {locale === "en" ? "Redeem" : "Komboa"}
                 </button>
@@ -288,7 +288,7 @@ export default function FarmerDashboard() {
         {/* 3. Submission Status Card */}
         <section className="bg-white/[0.03] border border-white/10 rounded-3xl p-5 shadow-lg flex flex-col space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-black text-primary tracking-widest uppercase">
+            <h2 className="text-xs font-black text-emerald-400 tracking-widest uppercase">
               {locale === "en" ? "Submission Recency" : "Hali ya Picha"}
             </h2>
             {hasSubIn14Days && latest && (
@@ -337,7 +337,7 @@ export default function FarmerDashboard() {
               "{locale === "sw" ? latest.ai_report_sw : latest.ai_report_en}"
             </div>
             <div className="flex justify-end">
-              <Link href="/farmer/reports" className="text-xs font-bold text-primary hover:underline">
+              <Link href="/farmer/reports" className="text-xs font-bold text-emerald-400 hover:underline">
                 {locale === "en" ? "Read Full Report →" : "Soma Ripoti Kamili →"}
               </Link>
             </div>
@@ -347,7 +347,7 @@ export default function FarmerDashboard() {
         {/* 5. Quick Stats Row */}
         <section className="grid grid-cols-3 gap-3">
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-3 text-center space-y-1 shadow-sm">
-            <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">
+            <p className="text-[9px] text-white/60 font-bold uppercase tracking-wider">
               {locale === "en" ? "Total Earned" : "Jumla Pato"}
             </p>
             <p className="text-sm font-extrabold text-emerald-400">
@@ -355,7 +355,7 @@ export default function FarmerDashboard() {
             </p>
           </div>
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-3 text-center space-y-1 shadow-sm">
-            <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">
+            <p className="text-[9px] text-white/60 font-bold uppercase tracking-wider">
               {locale === "en" ? "Photos" : "Picha"}
             </p>
             <p className="text-sm font-extrabold text-white/95">
@@ -363,7 +363,7 @@ export default function FarmerDashboard() {
             </p>
           </div>
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-3 text-center space-y-1 shadow-sm">
-            <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">
+            <p className="text-[9px] text-white/60 font-bold uppercase tracking-wider">
               {locale === "en" ? "Days Active" : "Siku Hai"}
             </p>
             <p className="text-sm font-extrabold text-white/95">
@@ -436,10 +436,10 @@ export default function FarmerDashboard() {
           </Link>
 
           {/* Wallet Tab */}
-          <Link href="/shared/wallet" className="flex flex-col items-center space-y-1 group">
+          <Link href="/wallet" className="flex flex-col items-center space-y-1 group">
             <svg
               className={`h-5 w-5 transition-transform group-hover:scale-110 ${
-                pathname === "/shared/wallet" || pathname === "/wallet" ? "text-primary filter drop-shadow-[0_0_8px_rgba(10,110,86,0.6)]" : "text-white/50 group-hover:text-white/80"
+                pathname === "/wallet" ? "text-primary filter drop-shadow-[0_0_8px_rgba(10,110,86,0.6)]" : "text-white/50 group-hover:text-white/80"
               }`}
               fill="none"
               viewBox="0 0 24 24"
@@ -449,7 +449,7 @@ export default function FarmerDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
             <span className={`text-[9px] font-extrabold tracking-wide ${
-              pathname === "/shared/wallet" || pathname === "/wallet" ? "text-primary" : "text-white/40 group-hover:text-white/70"
+              pathname === "/wallet" ? "text-primary" : "text-white/40 group-hover:text-white/70"
             }`}>
               {locale === "en" ? "Wallet" : "Mkoba"}
             </span>

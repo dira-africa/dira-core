@@ -460,7 +460,7 @@ export default function AgentHomePage() {
                 </div>
               </div>
               
-              <Link href="/shared/wallet">
+              <Link href="/wallet">
                 <button className="px-4 py-2 bg-white text-indigo-700 active:scale-[0.98] rounded-xl text-xs font-black shadow-md hover:bg-white/95 transition-all">
                   {locale === "en" ? "Redeem" : "Kusanya"}
                 </button>
@@ -607,7 +607,7 @@ export default function AgentHomePage() {
           </Link>
 
           {/* Wallet Tab */}
-          <Link href="/shared/wallet" className="flex flex-col items-center space-y-1 group">
+          <Link href="/wallet" className="flex flex-col items-center space-y-1 group">
             <svg
               className="h-5 w-5 text-white/50 group-hover:text-white/80 transition-transform group-hover:scale-105"
               fill="none"

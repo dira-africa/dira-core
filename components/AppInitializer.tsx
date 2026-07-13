@@ -22,7 +22,9 @@ export default function AppInitializer({ children }: { children: React.ReactNode
  
   const [status, setStatus] = useState<"initializing" | "authenticating" | "not-telegram" | "error" | "authenticated">("initializing");
   const [errorDetails, setErrorDetails] = useState<string>("");
- 
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [hasClickedEnter, setHasClickedEnter] = useState(false);
+
   const handleRedirect = useCallback((user: User) => {
     if (user.isNewUser) {
       if (!pathname.startsWith("/onboarding")) {
@@ -31,36 +33,46 @@ export default function AppInitializer({ children }: { children: React.ReactNode
         setStatus("authenticated");
       }
     } else {
-      const targetPath = user.role === "farmer" ? "/farmer/home" : "/agent/home";
-      if (pathname.startsWith(targetPath)) {
+      const allowedPrefix = user.role === "farmer" ? "/farmer" : "/agent";
+      const isAllowedPath = pathname.startsWith(allowedPrefix) || pathname.startsWith("/wallet") || pathname === "/home";
+      
+      if (isAllowedPath) {
         setStatus("authenticated");
       } else {
-        router.push(targetPath);
+        const targetHome = user.role === "farmer" ? "/farmer/home" : "/agent/home";
+        router.push(targetHome);
       }
     }
   }, [pathname, router]);
- 
+
+  const onEnterApp = () => {
+    setHasClickedEnter(true);
+    if (authUser) {
+      handleRedirect(authUser);
+    }
+  };
+
   const runAuth = useCallback(async () => {
     setStatus("authenticating");
     try {
       const authData = await authenticateWithTelegram();
-      handleRedirect(authData.user);
+      setAuthUser(authData.user);
     } catch (err: unknown) {
       console.error("Authentication error:", err);
       const errMsg = err instanceof Error ? err.message : "Failed to authenticate.";
       setErrorDetails(errMsg);
       setStatus("error");
     }
-  }, [handleRedirect]);
- 
+  }, []);
+
   // Track page views on route change
   useEffect(() => {
     trackPageView();
   }, [pathname]);
- 
+
   useEffect(() => {
     if (typeof window === "undefined") return;
- 
+
     // Define all public marketing/informational routes
     const isPublicRoute =
       pathname === "/" ||
@@ -72,23 +84,26 @@ export default function AppInitializer({ children }: { children: React.ReactNode
       pathname === "/privacy" ||
       pathname === "/public" ||
       pathname.startsWith("/admin");
- 
+
     if (isPublicRoute) {
       setStatus("authenticated");
       return;
     }
- 
+
     const customWindow = window as unknown as CustomWindow;
     const tgWebApp = customWindow.Telegram?.WebApp;
     const initData = tgWebApp?.initData;
- 
+
     // If not inside Telegram WebView (no initData)
     if (!initData) {
       // Check if this is a standalone PWA launch with an existing valid session
       if (isAuthenticated()) {
         const user = getStoredUser();
         if (user) {
-          handleRedirect(user);
+          setAuthUser(user);
+          if (hasClickedEnter) {
+            handleRedirect(user);
+          }
           return;
         }
       }
@@ -96,32 +111,112 @@ export default function AppInitializer({ children }: { children: React.ReactNode
       setStatus("not-telegram");
       return;
     }
- 
+
     // If inside Telegram and already authenticated, short-circuit redirect
     if (isAuthenticated()) {
       const user = getStoredUser();
       if (user) {
-        handleRedirect(user);
+        setAuthUser(user);
+        if (hasClickedEnter) {
+          handleRedirect(user);
+        }
         return;
       }
     }
- 
+
     // Perform authentication inside Telegram
     runAuth();
-  }, [handleRedirect, runAuth, pathname]);
- 
+  }, [handleRedirect, runAuth, pathname, hasClickedEnter]);
+
   // Listen to pathname changes to complete redirection status
   useEffect(() => {
     if (status === "authenticating" || status === "initializing") {
       const user = getStoredUser();
       if (user && isAuthenticated()) {
-        handleRedirect(user);
+        setAuthUser(user);
+        if (hasClickedEnter) {
+          handleRedirect(user);
+        }
       }
     }
-  }, [pathname, status, handleRedirect]);
+  }, [pathname, status, handleRedirect, hasClickedEnter]);
+
+  const renderGateScreen = () => {
+    const isNew = authUser?.isNewUser;
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#0e0e26] via-[#051c1c] to-[#04120f] text-white p-6">
+        <div className="relative flex flex-col items-center max-w-md w-full bg-white/[0.03] border border-white/10 rounded-3xl p-8 text-center space-y-6 shadow-2xl backdrop-blur-md">
+          {/* Pulsing brand ring */}
+          <div className="relative animate-fade-in">
+            <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl animate-pulse" />
+            <div className="relative h-20 w-20 rounded-full border border-primary/30 bg-[#0A6E56]/10 flex items-center justify-center shadow-lg shadow-primary/10">
+              <span className="font-extrabold text-3xl tracking-wide text-primary">D</span>
+            </div>
+            {/* Spinning Premium Circular Loader border effect */}
+            <div className="absolute -inset-1 rounded-full border border-primary/30" />
+          </div>
+
+          <div className="space-y-3">
+            <h1 className="text-2xl font-black tracking-wide text-emerald-400">
+              {isNew 
+                ? (locale === "en" ? "Welcome to Dira" : "Karibu Dira")
+                : (locale === "en" ? "Welcome Back" : "Karibu Tena")
+              }
+            </h1>
+            <p className="text-base font-extrabold text-white/95">
+              {locale === "en" ? "Hello" : "Habari"}, {authUser?.name || "User"}!
+            </p>
+            <p className="text-sm text-white/70 max-w-xs leading-relaxed">
+              {isNew
+                ? (locale === "en" 
+                    ? "Join Kenya's mobile weather sensing DePIN network. Click below to start registration." 
+                    : "Jiunge na mtandao wa Dira wa kupima hali ya hewa nchini Kenya. Gusa hapa kuanza usajili.")
+                : (locale === "en" 
+                    ? "Your session is verified. Click below to log in and enter your dashboard." 
+                    : "Kipindi chako kimethibitishwa. Gusa hapa chini kuingia kwenye dashibodi yako.")
+              }
+            </p>
+          </div>
+
+          <button
+            onClick={onEnterApp}
+            className="w-full py-4 px-4 rounded-xl bg-primary text-white font-black text-sm shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all uppercase tracking-wider"
+          >
+            {isNew
+              ? (locale === "en" ? "Register & Onboard" : "Jisajili / Anza Usajili")
+              : (locale === "en" ? "Log In / Enter App" : "Ingia / Fungua Dashibodi")
+            }
+          </button>
+
+          {/* Language Switcher */}
+          <div className="flex space-x-1 bg-white/5 p-1 rounded-xl border border-white/10 mt-2">
+            <button
+              onClick={() => setLocale("en")}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                locale === "en" ? "bg-primary text-white" : "text-white/60 hover:text-white"
+              }`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => setLocale("sw")}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                locale === "sw" ? "bg-primary text-white" : "text-white/60 hover:text-white"
+              }`}
+            >
+              SW
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
 
   if (status === "initializing" || status === "authenticating") {
+    if (authUser && !hasClickedEnter) {
+      return renderGateScreen();
+    }
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#0e0e26] via-[#051c1c] to-[#04120f] text-white p-6">
         <div className="relative flex flex-col items-center max-w-md w-full text-center space-y-8 animate-fade-in">

@@ -298,7 +298,7 @@ export default function AgentSettings() {
           </Link>
 
           {/* Wallet Tab */}
-          <Link href="/shared/wallet" className="flex flex-col items-center space-y-1 group">
+          <Link href="/wallet" className="flex flex-col items-center space-y-1 group">
             <svg
               className="h-5 w-5 text-white/50 group-hover:text-white/80 transition-transform group-hover:scale-105"
               fill="none"
