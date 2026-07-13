@@ -152,7 +152,7 @@ export default function AppInitializer({ children }: { children: React.ReactNode
             </p>
             <ol className="list-decimal list-inside text-left space-y-1 text-white/50">
               <li>{locale === "en" ? "Open Telegram app" : "Fungua programu ya Telegram"}</li>
-              <li>{locale === "en" ? "Search for @DiraBot" : "Tafuta @DiraBot"}</li>
+              <li>{locale === "en" ? "Search for @DiraAfricaBot" : "Tafuta @DiraAfricaBot"}</li>
               <li>{locale === "en" ? "Tap Menu or Start app" : "Gusa Menu au Anzisha programu"}</li>
             </ol>
           </div>
