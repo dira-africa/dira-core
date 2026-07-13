@@ -84,12 +84,12 @@ export default function LandingPage() {
               Kenya's Weather Sensing Network
             </h1>
             <p className="text-base sm:text-xl text-white/70 max-w-3xl mx-auto leading-relaxed">
-              Dira is a Decentralised Physical Infrastructure Network (DePIN) co-governed under Blockchain & Climate Institute (BCI). We crowdsource barometric and crop observations to mitigate micro-climate risks and distribute Climate Token rewards.
+              Dira is a Decentralised Physical Infrastructure Network (DePIN). We crowdsource barometric and crop observations to mitigate micro-climate risks and distribute Climate Token rewards.
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
               <Link
-                href="/home"
+                href="/farmer/home"
                 className="w-full sm:w-auto px-8 py-4 bg-[#0A6E56] hover:bg-[#085a46] text-white font-extrabold rounded-2xl shadow-lg shadow-[#0A6E56]/30 transition-all duration-200 transform hover:scale-[1.03] active:scale-[0.97]"
               >
                 Launch Dira App

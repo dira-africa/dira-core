@@ -20,7 +20,7 @@ import PublicFooter from "@/components/PublicFooter";
 
 export const metadata: Metadata = {
   title: "About Us — Dira Africa",
-  description: "Dira Africa is a decentralized weather sensing network built under Blockchain & Climate Institute to mitigate micro-climate risks.",
+  description: "Dira Africa is a decentralized weather sensing network designed to mitigate micro-climate risks.",
   alternates: {
     canonical: "/about",
   },
@@ -40,7 +40,7 @@ export default function AboutPage() {
               About Dira Africa
             </h1>
             <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
-              Dira is a Decentralised Physical Infrastructure Network (DePIN) developed by Blockchain & Climate Institute (BCI). We turn everyday smartphones into a distributed climate sensing network across Kenya.
+              Dira is a Decentralised Physical Infrastructure Network (DePIN). We turn everyday smartphones into a distributed climate sensing network across Kenya.
             </p>
           </div>
         </section>
@@ -51,12 +51,6 @@ export default function AboutPage() {
           <p className="text-white/70 text-sm leading-relaxed text-center">
             Traditional weather monitoring stations are sparse and expensive, leaving smallholder farmers in developing nations vulnerable to unpredictable weather patterns. Dira crowdsources barometric and environmental observations to map atmospheric variations at hyper-local levels.
           </p>
-          <div className="border border-white/10 rounded-2xl p-6 bg-white/[0.01]">
-            <h4 className="font-bold text-emerald-400 mb-2">Blockchain & Climate Institute (BCI)</h4>
-            <p className="text-xs text-white/60 leading-relaxed">
-              Dira Africa is co-engineered and governed under the guidance of BCI, a global think-tank helping deploy blockchain and emerging technologies to meet global climate change objectives.
-            </p>
-          </div>
         </section>
       </main>
 

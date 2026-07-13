@@ -221,21 +221,30 @@ export default function PublicDashboard() {
         fetch(`${API_URL}/public/hedera-anchors`)
       ]);
 
-      const statsJson = await statsRes.json();
-      const econJson = await econRes.json();
-      const feedJson = await feedRes.json();
-      const qualJson = await qualRes.json();
-      const anchJson = await anchRes.json();
-
-      if (statsJson.success) setStats(statsJson.stats);
-      if (econJson.success) setEconomy(econJson.summary);
-      if (feedJson.success) setActivities(feedJson.activities);
-      if (qualJson.success) setQuality(qualJson.metrics);
-      if (anchJson.success) setAnchors(anchJson.anchors);
-
-      setLoading(false);
+      if (statsRes.ok) {
+        const statsJson = await statsRes.json();
+        if (statsJson.success) setStats(statsJson.stats);
+      }
+      if (econRes.ok) {
+        const econJson = await econRes.json();
+        if (econJson.success) setEconomy(econJson.summary);
+      }
+      if (feedRes.ok) {
+        const feedJson = await feedRes.json();
+        if (feedJson.success) setActivities(feedJson.activities);
+      }
+      if (qualRes.ok) {
+        const qualJson = await qualRes.json();
+        if (qualJson.success) setQuality(qualJson.metrics);
+      }
+      if (anchRes.ok) {
+        const anchJson = await anchRes.json();
+        if (anchJson.success) setAnchors(anchJson.anchors);
+      }
     } catch (err) {
       console.error("Dashboard telemetry load failure:", err);
+    } finally {
+      setLoading(false);
     }
   };
 

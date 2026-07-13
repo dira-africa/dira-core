@@ -107,11 +107,6 @@ export default function PublicFooter() {
                   {locale === "sw" ? "Ulinzi wa Data & Sera" : "Data Protection & Privacy"}
                 </Link>
               </li>
-              <li>
-                <span className="block leading-relaxed">
-                  {locale === "sw" ? "Chini ya BCI (Blockchain & Climate Institute)" : "Co-governed by Blockchain & Climate Institute"}
-                </span>
-              </li>
               <li className="text-[10px] uppercase text-emerald-400 font-bold tracking-wider">
                 Apache 2.0 License
               </li>

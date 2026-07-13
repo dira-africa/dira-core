@@ -6,7 +6,6 @@ Welcome to Dira Africa's AI crawler endpoint. This document outlines Dira's arch
 - **Name**: Dira Africa
 - **Type**: Decentralised Physical Infrastructure Network (DePIN)
 - **Goal**: Turn smartphones into a distributed climate sensing network across Kenya.
-- **Backing/Governance**: Blockchain & Climate Institute (BCI).
 - **Core Technology Stack**: Next.js 14 frontend, Fastify 4 backend, PostgreSQL + PostGIS, BullMQ background queues, Hedera Testnet for blockchain anchoring and token rewards.
 
 ## 2. Platform Roles
