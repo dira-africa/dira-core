@@ -226,13 +226,13 @@ export default function FarmerDashboard() {
       <div className="flex-1 w-full max-w-md mx-auto p-4 flex flex-col space-y-6 bg-gradient-to-b from-[#0A6E56]/20 via-[#04120f] to-[#0d0d21] text-white min-h-screen pb-28">
         
         {/* 1. Greeting Header */}
-        <header className="flex justify-between items-center py-2">
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center font-bold text-xl shadow-inner select-none">
+        <header className="flex justify-between items-center py-2 gap-3">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
+            <div className="h-10 w-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center font-bold text-xl shadow-inner select-none flex-shrink-0">
               👨‍🌾
             </div>
-            <div>
-              <h1 className="font-extrabold text-base tracking-wide text-white leading-tight">
+            <div className="min-w-0 flex-1">
+              <h1 className="font-extrabold text-base tracking-wide text-white leading-tight break-words">
                 {locale === "en" ? "Hello" : "Habari"}, {user?.name || "Farmer"}!
               </h1>
               <p className="text-[10px] text-white/50 font-medium tracking-wide mt-0.5">
@@ -267,16 +267,16 @@ export default function FarmerDashboard() {
               </span>
             </div>
             
-            <div className="pt-3.5 border-t border-white/10 flex justify-between items-end">
-              <div>
-                <p className="text-[9px] text-white/50 font-medium uppercase tracking-wider">
+            <div className="pt-3.5 border-t border-white/10 flex flex-wrap justify-between items-end gap-3">
+              <div className="flex-1 min-w-[200px] space-y-0.5">
+                <p className="text-[9px] text-white/55 font-medium uppercase tracking-wider">
                   {locale === "en" ? "Estimated Value" : "Thamani Inayokadiriwa"}
                 </p>
-                <p className="text-xs font-bold text-white/90 mt-0.5">
+                <p className="text-xs font-bold text-white/90 leading-tight">
                   KES {((balance || 0) * 0.55).toFixed(2)} ({locale === "en" ? "Airtime" : "Kadi"}) / KES {((balance || 0) * 0.50).toFixed(2)} ({locale === "en" ? "Cash" : "Pesa"})
                 </p>
               </div>
-              <Link href="/wallet">
+              <Link href="/wallet" className="flex-shrink-0">
                 <button className="px-4 py-2 bg-white text-primary rounded-xl text-xs font-black shadow-md hover:bg-white/95 active:scale-[0.98] transition-all uppercase tracking-wider">
                   {locale === "en" ? "Redeem" : "Komboa"}
                 </button>
@@ -287,8 +287,8 @@ export default function FarmerDashboard() {
 
         {/* 3. Submission Status Card */}
         <section className="bg-white/[0.03] border border-white/10 rounded-3xl p-5 shadow-lg flex flex-col space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-black text-emerald-400 tracking-widest uppercase">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-xs font-black text-emerald-400 tracking-widest uppercase flex-1 min-w-0">
               {locale === "en" ? "Submission Recency" : "Hali ya Picha"}
             </h2>
             {hasSubIn14Days && latest && (

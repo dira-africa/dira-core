@@ -392,14 +392,14 @@ export default function WalletPage() {
 
         {/* 3. Four redemption option cards sorted by rate */}
         <section className="space-y-3">
-          <h2 className="text-xs font-black text-primary tracking-widest uppercase pb-1">
+          <h2 className="text-xs font-black text-emerald-400 tracking-widest uppercase pb-1">
             {t.optionsTitle}
           </h2>
           
           <div className="grid grid-cols-1 gap-3">
             {/* Card 1: Airtime */}
-            <div className="bg-[#0A6E56]/10 border border-[#0A6E56]/30 hover:border-[#0A6E56]/50 rounded-2xl p-4 flex justify-between items-center transition-all duration-300 hover:scale-[1.01]">
-              <div className="space-y-1">
+            <div className="bg-[#0A6E56]/10 border border-[#0A6E56]/30 hover:border-[#0A6E56]/50 rounded-2xl p-4 flex justify-between items-center gap-4 transition-all duration-300 hover:scale-[1.01]">
+              <div className="space-y-1 flex-1 min-w-0">
                 <div className="flex items-center space-x-1.5">
                   <span className="text-xs font-extrabold text-[#2ae0ab] uppercase tracking-wider">AIRTIME ⚡</span>
                   <span className="text-[8px] bg-[#0A6E56]/30 border border-[#0A6E56]/40 text-[#2ae0ab] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
@@ -421,12 +421,12 @@ export default function WalletPage() {
             </div>
 
             {/* Card 2: Vouchers */}
-            <div className={`border rounded-2xl p-4 flex justify-between items-center transition-all duration-300 ${
+            <div className={`border rounded-2xl p-4 flex justify-between items-center gap-4 transition-all duration-300 ${
               isVouchersActive 
                 ? "bg-teal-500/10 border-teal-500/30 hover:border-teal-500/50 hover:scale-[1.01]" 
                 : "bg-white/[0.02] border-white/5 opacity-60"
             }`}>
-              <div className="space-y-1">
+              <div className="space-y-1 flex-1 min-w-0">
                 <div className="flex items-center space-x-1.5">
                   <span className="text-xs font-extrabold text-teal-400 uppercase tracking-wider">FARM INPUTS 🌱</span>
                   <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
@@ -458,12 +458,12 @@ export default function WalletPage() {
             </div>
 
             {/* Card 3: Circle */}
-            <div className={`border rounded-2xl p-4 flex justify-between items-center transition-all duration-300 ${
+            <div className={`border rounded-2xl p-4 flex justify-between items-center gap-4 transition-all duration-300 ${
               isDiraCircleActive 
                 ? "bg-purple-500/10 border-purple-500/30 hover:border-purple-500/50 hover:scale-[1.01]" 
                 : "bg-white/[0.02] border-white/5 opacity-60"
             }`}>
-              <div className="space-y-1">
+              <div className="space-y-1 flex-1 min-w-0">
                 <div className="flex items-center space-x-1.5">
                   <span className="text-xs font-extrabold text-purple-400 uppercase tracking-wider">DIRA CIRCLE 👥</span>
                   <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
@@ -495,12 +495,12 @@ export default function WalletPage() {
             </div>
 
             {/* Card 4: M-Pesa */}
-            <div className={`border rounded-2xl p-4 flex justify-between items-center transition-all duration-300 ${
+            <div className={`border rounded-2xl p-4 flex justify-between items-center gap-4 transition-all duration-300 ${
               isPretiumActive 
                 ? "bg-orange-500/10 border-orange-500/30 hover:border-orange-500/50 hover:scale-[1.01]" 
                 : "bg-white/[0.02] border-white/5 opacity-60"
             }`}>
-              <div className="space-y-1">
+              <div className="space-y-1 flex-1 min-w-0">
                 <div className="flex items-center space-x-1.5">
                   <span className="text-xs font-extrabold text-orange-400 uppercase tracking-wider">M-PESA 📱</span>
                   <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
