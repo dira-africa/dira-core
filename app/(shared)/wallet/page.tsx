@@ -23,6 +23,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { apiClient } from "@/lib/api-client";
 import { getStoredUser, User } from "@/lib/auth";
 import AuthGuard from "@/components/AuthGuard";
+import BackButton from "@/components/ui/BackButton";
 
 // Interface definitions
 interface BalanceData {
@@ -304,12 +305,7 @@ export default function WalletPage() {
         {/* Header */}
         <header className="flex justify-between items-center py-2 border-b border-white/5">
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => router.back()}
-              className="p-1 text-white/60 hover:text-white transition-all text-lg font-bold"
-            >
-              ←
-            </button>
+            <BackButton fallbackHref="/farmer/home" />
             <h1 className="font-extrabold text-lg tracking-wide text-white leading-tight">
               {t.title}
             </h1>

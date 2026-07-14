@@ -13,7 +13,7 @@ const nextConfig = {
       script-src 'self' 'unsafe-eval' 'unsafe-inline' https://telegram.org https://*.telegram.org;
       style-src 'self' 'unsafe-inline' https://unpkg.com;
       img-src 'self' blob: data: https://*.openstreetmap.org https://unpkg.com;
-      connect-src 'self' http://localhost:3001 https://*.pretium.money ws://localhost:* wss://* http://127.0.0.1:* http://localhost:*;
+      connect-src 'self' http://localhost:3001 http://localhost:4000 https://*.diraafrica.org https://*.pretium.money ws://localhost:* wss://* http://127.0.0.1:* http://localhost:*;
       frame-ancestors 'self' https://telegram.org https://*.telegram.org;
       frame-src 'self' https://telegram.org https://*.telegram.org;
     `.replace(/\s{2,}/g, ' ').trim();

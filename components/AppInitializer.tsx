@@ -59,7 +59,11 @@ export default function AppInitializer({ children }: { children: React.ReactNode
       setAuthUser(authData.user);
     } catch (err: unknown) {
       console.error("Authentication error:", err);
-      const errMsg = err instanceof Error ? err.message : "Failed to authenticate.";
+      let errMsg = err instanceof Error ? err.message : "Failed to authenticate.";
+      // Give a more helpful message when the backend is unreachable
+      if (errMsg === "Failed to fetch" || errMsg.toLowerCase().includes("network")) {
+        errMsg = "Cannot reach the Dira server. If you are testing locally, make sure the backend is running and NEXT_PUBLIC_API_URL is set correctly. On production, check Coolify environment variables.";
+      }
       setErrorDetails(errMsg);
       setStatus("error");
     }

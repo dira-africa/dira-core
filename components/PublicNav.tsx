@@ -86,7 +86,7 @@ export default function PublicNav() {
               {locale === "sw" ? "EN" : "SW"}
             </button>
             <Link
-              href="/farmer/home"
+              href="/home"
               onClick={() => trackEvent("cta_click", { target: "launch_app" })}
               className="px-4 py-2 text-sm font-bold bg-[#0A6E56] hover:bg-[#085a46] text-white rounded-xl shadow-md shadow-[#0A6E56]/20 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
             >
@@ -147,7 +147,7 @@ export default function PublicNav() {
           })}
           <div className="pt-4 px-3">
             <Link
-              href="/farmer/home"
+              href="/home"
               onClick={() => {
                 setMobileMenuOpen(false);
                 trackEvent("cta_click", { target: "mobile_launch_app" });
