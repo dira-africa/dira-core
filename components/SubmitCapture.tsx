@@ -20,6 +20,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import AuthGuard from "@/components/AuthGuard";
+import BackButton from "@/components/ui/BackButton";
 
 export default function SubmitCapture() {
   const router = useRouter();
@@ -154,11 +155,14 @@ export default function SubmitCapture() {
         
         {/* Header */}
         <div className="space-y-1 py-2">
-          <div className="flex items-center space-x-2 text-primary">
-            <span className="text-xl">📸</span>
-            <span className="text-xs font-black tracking-widest uppercase">
-              {locale === "en" ? "Step 1: Crop Capture" : "Hatua ya 1: Piga Picha"}
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-primary">
+              <span className="text-xl">📸</span>
+              <span className="text-xs font-black tracking-widest uppercase">
+                {locale === "en" ? "Step 1: Crop Capture" : "Hatua ya 1: Piga Picha"}
+              </span>
+            </div>
+            <BackButton href="/farmer/home" label={locale === "en" ? "Home" : "Nyumbani"} />
           </div>
           <h1 className="font-extrabold text-base tracking-tight text-white leading-tight">
             {locale === "en" ? "Capture Crop Photo" : "Piga Picha ya Zao"}

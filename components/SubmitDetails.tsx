@@ -20,6 +20,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import AuthGuard from "@/components/AuthGuard";
+import BackButton from "@/components/ui/BackButton";
 
 const CROP_OPTIONS = [
   { id: "Maize", en: "Maize", sw: "Mahindi" },
@@ -106,11 +107,14 @@ export default function SubmitDetails() {
         
         {/* Header */}
         <div className="space-y-1 py-2">
-          <div className="flex items-center space-x-2 text-primary">
-            <span className="text-xl">📋</span>
-            <span className="text-xs font-black tracking-widest uppercase">
-              {locale === "en" ? "Step 2: Crop Details" : "Hatua ya 2: Maelezo"}
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-primary">
+              <span className="text-xl">📋</span>
+              <span className="text-xs font-black tracking-widest uppercase">
+                {locale === "en" ? "Step 2: Crop Details" : "Hatua ya 2: Maelezo"}
+              </span>
+            </div>
+            <BackButton href="/farmer/submit/capture" label={locale === "en" ? "Back" : "Rudi"} />
           </div>
           <h1 className="font-extrabold text-base tracking-tight text-white leading-tight">
             {locale === "en" ? "Add Crop Information" : "Weka Maelezo ya Zao"}

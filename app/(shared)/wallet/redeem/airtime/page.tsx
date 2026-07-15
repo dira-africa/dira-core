@@ -21,6 +21,8 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { apiClient } from "@/lib/api-client";
 import AuthGuard from "@/components/AuthGuard";
+import BackButton from "@/components/ui/BackButton";
+
 
 // Interface definitions
 interface BalanceData {
@@ -249,12 +251,7 @@ export default function AirtimeRedeemPage() {
         <header className="flex justify-between items-center py-2 border-b border-white/5">
           <div className="flex items-center space-x-2">
             {step === "form" && (
-              <button
-                onClick={() => router.back()}
-                className="p-1 text-white/60 hover:text-white transition-all text-lg font-bold"
-              >
-                ←
-              </button>
+              <BackButton fallbackHref="/wallet" />
             )}
             <h1 className="font-extrabold text-lg tracking-wide text-white leading-tight">
               {t.redeemTitle}

@@ -284,12 +284,20 @@ export default function SubmitUploading() {
               </p>
             )}
 
-            <button
-              onClick={handleManualRetry}
-              className="px-6 py-3 bg-primary hover:bg-[#085a46] active:scale-[0.98] transition-all font-bold text-xs rounded-2xl uppercase tracking-wider shadow-lg"
-            >
-              🔄 {locale === "en" ? "Retry Now" : "Jaribu Sasa"}
-            </button>
+            <div className="flex flex-col w-full gap-2 px-4">
+              <button
+                onClick={handleManualRetry}
+                className="w-full py-3 bg-primary hover:bg-[#085a46] active:scale-[0.98] transition-all font-bold text-xs rounded-2xl uppercase tracking-wider shadow-lg"
+              >
+                🔄 {locale === "en" ? "Retry Now" : "Jaribu Sasa"}
+              </button>
+              <button
+                onClick={() => router.push(window.location.pathname.includes("/farmer/submit") ? "/farmer/home" : "/home")}
+                className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all"
+              >
+                {locale === "en" ? "Cancel & Go Home" : "Ghairi na Rudi Nyumbani"}
+              </button>
+            </div>
           </div>
         )}
 

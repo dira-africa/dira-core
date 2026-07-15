@@ -21,6 +21,8 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { apiClient } from "@/lib/api-client";
 import AuthGuard from "@/components/AuthGuard";
+import BackButton from "@/components/ui/BackButton";
+
 
 // Interface definitions
 interface BalanceData {
@@ -375,9 +377,11 @@ export default function MpesaRedeemPage() {
                   if (step === "confirm") setStep("form");
                   else router.back();
                 }}
-                className="p-1 text-white/60 hover:text-white transition-all text-lg font-bold"
+                className="p-1 text-white/60 hover:text-white transition-all text-lg font-bold flex items-center"
               >
-                ←
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
               </button>
             )}
             <h1 className="font-extrabold text-lg tracking-wide text-white leading-tight">

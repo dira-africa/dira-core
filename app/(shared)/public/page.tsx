@@ -503,6 +503,11 @@ export default function PublicDashboard() {
         <header className="flex flex-col md:flex-row md:justify-between md:items-center border-b border-white/10 pb-6 gap-4">
           <div className="space-y-1">
             <div className="flex items-center space-x-3">
+              <Link href="/" className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-white/70 hover:text-white flex items-center justify-center" title="Back to Home">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+              </Link>
               <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center font-black text-xl text-white shadow-lg shadow-primary/20">
                 D
               </div>

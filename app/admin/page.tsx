@@ -17,6 +17,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import Link from "next/link";
 import { Chart, registerables } from "chart.js";
 
 const API_URL =
@@ -1422,7 +1423,12 @@ export default function AdminPage() {
     return (
       <main className="flex-1 w-full min-h-screen bg-gradient-to-b from-[#0a0a23] via-[#051c1c] to-[#04120f] text-white flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white/[0.03] border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur-md space-y-6">
-          <div className="text-center space-y-2">
+          <div className="text-center space-y-2 relative">
+            <Link href="/" className="absolute left-0 top-1 text-white/50 hover:text-white transition-colors" title="Back to Home">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+              </svg>
+            </Link>
             <div className="h-16 w-16 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center mx-auto shadow-lg">
               <span className="font-extrabold text-2xl text-primary">D</span>
             </div>
@@ -1493,6 +1499,11 @@ export default function AdminPage() {
         <header className="flex flex-col md:flex-row justify-between md:items-center border-b border-white/10 pb-6 gap-4">
           <div className="space-y-1">
             <div className="flex items-center space-x-3">
+              <Link href="/" className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-white/70 hover:text-white flex items-center justify-center" title="Back to Home">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+              </Link>
               <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center font-black text-white shadow shadow-primary/20">
                 A
               </div>

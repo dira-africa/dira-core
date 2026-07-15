@@ -24,9 +24,11 @@ export default function PrivacyPolicyPage() {
         <div className="flex justify-between items-center text-xs text-white/40 pb-2 border-b border-white/5">
           <button
             onClick={handleBack}
-            className="flex items-center space-x-1 hover:text-white transition-all font-semibold"
+            className="flex items-center space-x-1 hover:text-white transition-all font-semibold text-white/60"
           >
-            <span>←</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 mr-0.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            </svg>
             <span>{locale === "en" ? "Back" : "Nyuma"}</span>
           </button>
 
