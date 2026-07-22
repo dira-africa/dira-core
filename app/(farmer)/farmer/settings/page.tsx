@@ -36,9 +36,40 @@ export default function FarmerSettings() {
   const [confirmCheckbox, setConfirmCheckbox] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Climate Warning Alerts preference state
+  const [alertsEnabled, setAlertsEnabled] = useState<boolean>(true);
+  const [loadingAlerts, setLoadingAlerts] = useState<boolean>(false);
+
   useEffect(() => {
     setUser(getStoredUser());
+
+    // Fetch latest alerts preference from backend
+    apiClient.get<{ success: boolean; user: { alerts_enabled: boolean } }>("/api/users/me")
+      .then(res => {
+        if (res.success) {
+          setAlertsEnabled(res.user.alerts_enabled);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load user alert settings:", err);
+      });
   }, []);
+
+  const handleToggleAlerts = async () => {
+    try {
+      setLoadingAlerts(true);
+      setErrorMessage("");
+      const nextStatus = !alertsEnabled;
+      const res = await apiClient.put<{ success: boolean }>("/api/users/me/alerts", { enabled: nextStatus });
+      if (res.success) {
+        setAlertsEnabled(nextStatus);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to update alert preference.");
+    } finally {
+      setLoadingAlerts(false);
+    }
+  };
 
   const handleExportData = async () => {
     try {
@@ -151,6 +182,39 @@ export default function FarmerSettings() {
                   : "Data yako ya kibinafsi huhifadhiwa wakati akaunti yako iko hai. Ukiiomba ifutwe, maelezo yote ya kibinafsi yanabadilishwa na picha kufutwa baada ya siku 30. Kumbukumbu za miamala zisizotambulika huhifadhiwa daima kwa ukaguzi wa kifedha."}
               </p>
             </div>
+          </div>
+        </section>
+
+        {/* Preference Settings */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-black text-primary tracking-widest uppercase">
+            {locale === "en" ? "Preferences" : "Mipangilio ya Tahadhari"}
+          </h2>
+
+          <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex justify-between items-center">
+            <div className="space-y-0.5 text-left">
+              <span className="text-white text-xs font-extrabold">
+                {locale === "en" ? "Climate Warning Alerts" : "Tahadhari za Hali ya Hewa"}
+              </span>
+              <p className="text-[10px] text-white/40 font-medium">
+                {locale === "en"
+                  ? "Receive early climate warning alerts via Telegram"
+                  : "Pokea tahadhari za hewa mapema kupitia Telegram"}
+              </p>
+            </div>
+            <button
+              onClick={handleToggleAlerts}
+              disabled={loadingAlerts}
+              className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 focus:outline-none flex items-center ${
+                alertsEnabled ? "bg-[#0A6E56]" : "bg-white/10"
+              }`}
+            >
+              <div
+                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
+                  alertsEnabled ? "translate-x-6" : "translate-x-0"
+                }`}
+              />
+            </button>
           </div>
         </section>
 

@@ -29,7 +29,7 @@ interface CropSubmissionDetail {
   photo_url: string;
   crop_type: string;
   growth_stage: string;
-  verification_status: "pending" | "verified" | "rejected";
+  verification_status: "pending" | "verified" | "rejected" | "manual_review" | "escalated" | "appealed";
   ai_health_score: number | string;
   ai_confidence: number | string;
   ai_report_en: string;
@@ -40,6 +40,19 @@ interface CropSubmissionDetail {
   rejection_reason?: string;
   submitted_at: string;
   verified_at?: string;
+  outcome?: string;
+  outcome_reason?: string;
+  is_appealed?: boolean;
+  appeal_reason?: string;
+  airtime_breakdown?: {
+    baseTokens: number;
+    baseAirtime: number;
+    bonusTokens: number;
+    bonusAirtime: number;
+    totalTokens: number;
+    totalAirtime: number;
+    kesPerToken: number;
+  };
 }
 
 interface DetailResponse {
@@ -209,6 +222,7 @@ export default function ReportDetail({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [animatedScore, setAnimatedScore] = useState(0);
+  const [appealing, setAppealing] = useState(false);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<Map | null>(null);
@@ -362,6 +376,38 @@ export default function ReportDetail({ id }: { id: string }) {
     window.open(shareUrl, "_blank", "noopener,noreferrer");
   };
 
+  const handleAppealClick = async () => {
+    if (!submission) return;
+    const defaultReason = locale === "en" 
+      ? "Farmer requests manual review of photo verification." 
+      : "Mkulima anaomba ukaguzi wa mwongozo wa picha.";
+    
+    const inputReason = window.prompt(
+      locale === "en" 
+        ? "Please enter a reason for your appeal (optional):" 
+        : "Tafadhali ingiza sababu ya rufaa yako (hiari):",
+      defaultReason
+    );
+
+    if (inputReason === null) return; // User cancelled
+
+    try {
+      setAppealing(true);
+      const res = await apiClient.post<{ success: boolean; message: string }>(
+        `/api/crop-submissions/${submission.id}/appeal`,
+        { reason: inputReason || defaultReason }
+      );
+      if (res.success) {
+        alert(locale === "en" ? "Appeal submitted successfully!" : "Rufaa imetokea kikamilifu!");
+        fetchDetail();
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to submit appeal.");
+    } finally {
+      setAppealing(false);
+    }
+  };
+
   if (loading) {
     return (
       <AuthGuard>
@@ -513,24 +559,45 @@ export default function ReportDetail({ id }: { id: string }) {
             </div>
           </div>
 
-          {/* Rejection Notification if rejected */}
-          {isRejected && (
-            <div className="p-4 bg-rose-500/10 border border-rose-500/25 rounded-2xl space-y-1.5">
-              <div className="flex items-center space-x-2 text-rose-400">
-                <span className="text-base">⚠️</span>
-                <h4 className="font-extrabold text-xs uppercase tracking-wider">
-                  {locale === "en" ? "Submission Rejected" : "Uwasilishaji Umekataliwa"}
+          {/* Rejection/Appeal Status & Outcome Display */}
+          {(isRejected || submission.verification_status === "appealed" || submission.verification_status === "manual_review" || submission.verification_status === "escalated") && (
+            <div className={`p-4 border rounded-2xl space-y-2.5 ${
+              isRejected ? "bg-rose-500/10 border-rose-500/25" :
+              submission.verification_status === "appealed" ? "bg-purple-500/10 border-purple-500/25" :
+              "bg-blue-500/10 border-blue-500/25"
+            }`}>
+              <div className="flex items-center space-x-2">
+                <span className="text-base">{isRejected ? "❌" : submission.verification_status === "appealed" ? "⚖️" : "⏳"}</span>
+                <h4 className={`font-extrabold text-xs uppercase tracking-wider ${
+                  isRejected ? "text-rose-400" :
+                  submission.verification_status === "appealed" ? "text-purple-400" :
+                  "text-blue-400"
+                }`}>
+                  {submission.outcome || (isRejected ? (locale === "en" ? "Rejected" : "Imekataliwa") : (locale === "en" ? "Needs Review" : "Inahitaji Uhakiki"))}
                 </h4>
               </div>
-              <p className="text-[11px] text-white/70 leading-relaxed">
-                {locale === "en"
-                  ? "Our system could not verify this photo. Please make sure the photo is clear, taken in good lighting, and matches the crop type registered."
-                  : "Mfumo wetu haukuweza kuthibitisha picha hii. Tafadhali hakikisha kuwa picha ni wazi, imepigwa wakati wa mchana, na inafanana na zao lililosajiliwa."}
+              <p className="text-[11px] text-white/80 leading-relaxed font-sans">
+                {submission.outcome_reason || (locale === "en" 
+                  ? "Submission status detail is being processed."
+                  : "Maelezo ya hali ya uwasilishaji yanachakatwa.")}
               </p>
-              {submission.rejection_reason && (
-                <p className="text-[10px] text-rose-300 italic pt-1 border-t border-rose-500/10">
-                  {locale === "en" ? "Reason:" : "Sababu:"} {submission.rejection_reason}
-                </p>
+
+              {/* Appeal Action */}
+              {isRejected && !submission.is_appealed && (
+                <div className="pt-2.5 border-t border-white/5 space-y-2">
+                  <p className="text-[10px] text-white/50">
+                    {locale === "en" 
+                      ? "Do you believe this was a mistake? You can appeal for human verification."
+                      : "Je, unaamini hii ilikuwa makosa? Unaweza kukata rufaa ili ikaguliwe na binadamu."}
+                  </p>
+                  <button
+                    onClick={() => handleAppealClick()}
+                    disabled={appealing}
+                    className="w-full py-2 bg-purple-600 hover:bg-purple-700 active:scale-[0.98] transition-all text-white font-bold text-xs rounded-xl"
+                  >
+                    {appealing ? (locale === "en" ? "Submitting..." : "Inatuma...") : (locale === "en" ? "Appeal Outcome" : "Kata Rufaa")}
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -582,6 +649,36 @@ export default function ReportDetail({ id }: { id: string }) {
                   {isPending ? "..." : `${animatedScore}%`}
                 </span>
               </div>
+            </div>
+          )}
+
+          {/* Airtime Reward Breakdown Panel */}
+          {submission.verification_status === "verified" && submission.airtime_breakdown && (
+            <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-3xl space-y-2 text-left">
+              <h4 className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider">
+                {locale === "en" ? "Airtime Reward Breakdown" : "Mchanganuo wa Zawadi ya Airtime"}
+              </h4>
+              <div className="space-y-1 text-[11px] text-white/70">
+                <div className="flex justify-between">
+                  <span>{locale === "en" ? "Base Reward:" : "Zawadi ya Msingi:"}</span>
+                  <span className="font-mono">{submission.airtime_breakdown.baseTokens} DIRA (KES {submission.airtime_breakdown.baseAirtime.toFixed(2)})</span>
+                </div>
+                {submission.airtime_breakdown.bonusTokens > 0 && (
+                  <div className="flex justify-between text-emerald-300">
+                    <span>{locale === "en" ? "High Confidence Bonus:" : "Nyongeza ya Uhakika wa Juu:"}</span>
+                    <span className="font-mono">+{submission.airtime_breakdown.bonusTokens} DIRA (KES {submission.airtime_breakdown.bonusAirtime.toFixed(2)})</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t border-white/5 pt-1.5 font-bold text-white">
+                  <span>{locale === "en" ? "Total Reward:" : "Jumla Kuu:"}</span>
+                  <span className="font-mono">{submission.airtime_breakdown.totalTokens} DIRA (KES {submission.airtime_breakdown.totalAirtime.toFixed(2)})</span>
+                </div>
+              </div>
+              <p className="text-[9px] text-white/40 italic text-center pt-1">
+                {locale === "en" 
+                  ? `Redeemed at rate: 1 DIRA = KES ${submission.airtime_breakdown.kesPerToken.toFixed(2)} airtime`
+                  : `Kiwango cha ukombozi: 1 DIRA = KES ${submission.airtime_breakdown.kesPerToken.toFixed(2)} ya kadi`}
+              </p>
             </div>
           )}
 

@@ -21,12 +21,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
     "",
     "/how-it-works",
+    "/verification",
     "/for-farmers",
+    "/for-agents",
     "/for-partners",
+    "/impact",
     "/about",
     "/blog",
+    "/blog/announcing-hedera-testnet",
+    "/blog/smartphone-barometers-weather",
+    "/faq",
+    "/contact",
     "/privacy",
-    "/public",
+    "/terms",
   ];
 
   return routes.map((route) => ({

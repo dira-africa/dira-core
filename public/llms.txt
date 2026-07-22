@@ -1,33 +1,27 @@
-# Dira Africa — LLM Crawler Index
+# Dira Africa Weather DePIN Network
 
-Welcome to Dira Africa's AI crawler endpoint. This document outlines Dira's architecture, roles, public endpoints, and core technological integrations for LLM agents.
+Dira Africa is a Decentralised Physical Infrastructure Network (DePIN) that turns smartphones into a distributed weather sensing network across Kenya.
 
-## 1. Project Overview
-- **Name**: Dira Africa
-- **Type**: Decentralised Physical Infrastructure Network (DePIN)
-- **Goal**: Turn smartphones into a distributed climate sensing network across Kenya.
-- **Core Technology Stack**: Next.js 14 frontend, Fastify 4 backend, PostgreSQL + PostGIS, BullMQ background queues, Hedera Testnet for blockchain anchoring and token rewards.
+## Quick Links
+- Bot: https://t.me/DiraAfricaBot
+- GitHub: https://github.com/dira-africa
+- Network Ledger (HCS Topic): 0.0.9544926
+- Reward Token (HTS Token): 0.0.9544938
 
-## 2. Platform Roles
-- **Farmers**: Submit geo-tagged crop health photographs bi-weekly. Validated crops are anchored to the blockchain and earn Climate Tokens.
-- **Data Agents**: Run background barometric sensors four times daily. Sync pressure telemetry to help compile hyper-local weather maps.
-- **Partners (Agro-Dealers)**: Redeem Climate Token vouchers in exchange for farming supplies and inputs.
+## System Architecture
 
-## 3. Public Web Endpoints
-- **Landing Page** (`/`): Public dashboard, DePIN stats, and hero banner.
-- **How It Works** (`/how-it-works`): Technical details on the data engine and Hedera anchors.
-- **For Farmers** (`/for-farmers`): Onboarding steps, rewards, and redemption channels.
-- **For Partners** (`/for-partners`): Voucher integrations and communities (Dira Circles).
-- **About** (`/about`): Global mission, BCI support, and team details.
-- **Verification Panel** (`/public`): Search and verify weekly Hedera certificates and Merkle roots.
-- **Sitemap** (`/sitemap.xml`): XML indexing of all public URLs.
-- **Robots Rules** (`/robots.txt`): Search engine crawler directives.
+1. **Farmer Node:** Farmers take geo-tagged crop reports bi-weekly. AI processes growth stages and verifies photo metadata.
+2. **Data Agent Node:** Agents sync passive background barometric observations four times daily.
+3. **Ledger Anchor:** The SHA-256 hash of all verified data points is anchored onto the Hedera Consensus Service (HCS).
+4. **Reward Distribution:** verified reports earn Dira Climate Tokens (DIRA) minted via Hedera Token Service (HTS). 
 
-## 4. Blockchain Specifications
-- **Hedera Consensus Service (HCS) Topic**: `0.0.9544926`
-- **Hedera Token Service (HTS) Token ID**: `0.0.9544938`
-- **Token Symbol**: DIRA (Fungible Climate Token, 2 decimals)
-- **Ledger Model**: Custodial treasury-minted system. No private keys are held by mobile clients.
+## Reward Redemption Layers
+- Day 1: Mobile Airtime (via Africa's Talking)
+- Month 1: Agro-Dealer input vouchers (seed/fertilizer)
+- Month 2: Dira Circle community cash pools (collaborative financing)
+- Month 3-4: Safaricom Daraja M-Pesa cashout payments (flag-gated)
 
----
-*License: Apache-2.0 · Co-Governed by BCI*
+## Technology Stack
+- Frontend: Next.js 14 (App Router), Tailwind CSS
+- Backend: Fastify 4, PostgreSQL 16 + PostGIS, Redis 7, BullMQ
+- Blockchain: Hedera Consensus & Token Services

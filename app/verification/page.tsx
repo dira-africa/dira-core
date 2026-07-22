@@ -15,16 +15,16 @@
  */
 
 import type { Metadata } from "next";
-import ForPartnersClient from "./ForPartnersClient";
+import VerificationClient from "./VerificationClient";
 
 export const metadata: Metadata = {
-  title: "For Partners — Dira Africa",
-  description: "Join Dira Africa's partner network. Learn how agro-dealers, community coordinators, and organizations sponsor climate data sensing.",
+  title: "Data Verification — Dira Africa",
+  description: "Verify crop submissions and barometer sync entries anchored on the Hedera ledger. Learn about Dira's climate data provenance pipeline.",
   alternates: {
-    canonical: "/for-partners",
+    canonical: "/verification",
   },
 };
 
 export default function Page() {
-  return <ForPartnersClient />;
+  return <VerificationClient />;
 }

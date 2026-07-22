@@ -29,10 +29,11 @@ interface CropSubmission {
   photo_url: string;
   crop_type: string;
   growth_stage: string;
-  verification_status: "pending" | "verified" | "rejected";
+  verification_status: "pending" | "verified" | "rejected" | "manual_review" | "escalated" | "appealed";
   ai_health_score: string | number;
   ai_confidence: string | number;
   submitted_at: string;
+  actual_tokens?: number;
 }
 
 interface SubmissionsResponse {
@@ -257,7 +258,7 @@ export default function ReportsList() {
                   {/* Reward Tokens Column */}
                   <div className="text-right flex-shrink-0">
                     <p className={`text-xs font-black tracking-tight ${isPending ? "text-white/30" : isRejected ? "text-rose-400" : "text-emerald-400"}`}>
-                      {isRejected ? "+0" : "+15"} DIRA
+                      {isPending ? "+5/6" : isRejected ? "+0" : `+${sub.actual_tokens || 15}`} DIRA
                     </p>
                     <p className="text-[8px] text-white/30 mt-0.5 uppercase tracking-wider font-extrabold">
                       {isPending ? (locale === "en" ? "Pending" : "Kusubiri") : (locale === "en" ? "Earned" : "Ulipaji")}

@@ -15,16 +15,25 @@
  */
 
 import type { Metadata } from "next";
-import ForPartnersClient from "./ForPartnersClient";
+import BlogPostClient from "./BlogPostClient";
 
-export const metadata: Metadata = {
-  title: "For Partners — Dira Africa",
-  description: "Join Dira Africa's partner network. Learn how agro-dealers, community coordinators, and organizations sponsor climate data sensing.",
-  alternates: {
-    canonical: "/for-partners",
-  },
-};
+interface Props {
+  params: {
+    slug: string;
+  };
+}
 
-export default function Page() {
-  return <ForPartnersClient />;
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const title = `${params.slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")} — Dira Africa`;
+  return {
+    title,
+    description: "Read updates and technical documentation from the Dira Africa climate sensing team.",
+    alternates: {
+      canonical: `/blog/${params.slug}`,
+    },
+  };
+}
+
+export default function Page({ params }: Props) {
+  return <BlogPostClient slug={params.slug} />;
 }

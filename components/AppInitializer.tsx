@@ -81,12 +81,17 @@ export default function AppInitializer({ children }: { children: React.ReactNode
     const isPublicRoute =
       pathname === "/" ||
       pathname === "/how-it-works" ||
+      pathname === "/verification" ||
       pathname === "/for-farmers" ||
+      pathname === "/for-agents" ||
       pathname === "/for-partners" ||
+      pathname === "/impact" ||
       pathname === "/about" ||
-      pathname === "/blog" ||
+      pathname.startsWith("/blog") ||
+      pathname === "/faq" ||
+      pathname === "/contact" ||
       pathname === "/privacy" ||
-      pathname === "/public" ||
+      pathname === "/terms" ||
       pathname.startsWith("/admin");
 
     if (isPublicRoute) {

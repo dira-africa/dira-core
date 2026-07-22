@@ -39,7 +39,7 @@ export default function PublicNav() {
     { href: "/for-partners", labelEn: "For Partners", labelSw: "Kwa Washirika" },
     { href: "/about", labelEn: "About", labelSw: "Kuhusu Sisi" },
     { href: "/blog", labelEn: "Blog", labelSw: "Blogu" },
-    { href: "/public", labelEn: "Verification", labelSw: "Uthibitishaji" },
+    { href: "/verification", labelEn: "Verification", labelSw: "Uthibitishaji" },
   ];
 
   return (
@@ -85,13 +85,15 @@ export default function PublicNav() {
             >
               {locale === "sw" ? "EN" : "SW"}
             </button>
-            <Link
-              href="/home"
-              onClick={() => trackEvent("cta_click", { target: "launch_app" })}
+            <a
+              href={process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL || "https://t.me/DiraAfricaBot"}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackEvent("cta_click", { target: "launch_bot" })}
               className="px-4 py-2 text-sm font-bold bg-[#0A6E56] hover:bg-[#085a46] text-white rounded-xl shadow-md shadow-[#0A6E56]/20 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
             >
-              {locale === "sw" ? "Fungua Programu" : "Launch App"}
-            </Link>
+              {locale === "sw" ? "Fungua Telegram" : "Open in Telegram"}
+            </a>
           </div>
 
           {/* Mobile menu button */}
@@ -146,16 +148,18 @@ export default function PublicNav() {
             );
           })}
           <div className="pt-4 px-3">
-            <Link
-              href="/home"
+            <a
+              href={process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL || "https://t.me/DiraAfricaBot"}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => {
                 setMobileMenuOpen(false);
-                trackEvent("cta_click", { target: "mobile_launch_app" });
+                trackEvent("cta_click", { target: "mobile_launch_bot" });
               }}
               className="block w-full text-center py-3 px-4 bg-[#0A6E56] hover:bg-[#085a46] text-white font-bold rounded-xl shadow-md"
             >
-              {locale === "sw" ? "Fungua Programu" : "Launch App"}
-            </Link>
+              {locale === "sw" ? "Fungua Telegram" : "Open in Telegram"}
+            </a>
           </div>
         </div>
       )}

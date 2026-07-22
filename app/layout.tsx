@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Inter } from "next/font/google";
 import Script from "next/script";
 import TelegramProvider from "@/components/TelegramProvider";
 import AppInitializer from "@/components/AppInitializer";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import StickyMobileBottomBar from "@/components/StickyMobileBottomBar";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-sans",
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -35,13 +33,15 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full min-h-screen bg-background text-foreground overflow-x-hidden`}
+        className={`${inter.variable} antialiased h-full min-h-screen bg-background text-foreground overflow-x-hidden`}
       >
         <TelegramProvider>
           <AppInitializer>
-            <div className="flex flex-col min-h-screen h-full w-full">
+            <div className="flex flex-col min-h-screen h-full w-full pb-20 md:pb-0">
               {children}
             </div>
+            <FloatingWhatsApp />
+            <StickyMobileBottomBar />
           </AppInitializer>
         </TelegramProvider>
       </body>

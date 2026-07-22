@@ -178,6 +178,7 @@ interface UserRecord {
   sync_count?: number;
   email: string | null;
   suspension_reason: string | null;
+  alerts_enabled?: boolean;
   suspended_at: string | null;
   phone_number?: string | null;
   language?: string | null;
@@ -188,7 +189,7 @@ interface CropSubmission {
   user_id: string;
   crop_type: string;
   growth_stage: string;
-  verification_status: "pending" | "verified" | "rejected" | "escalated" | "failed" | "manual_review";
+  verification_status: "pending" | "verified" | "rejected" | "escalated" | "failed" | "manual_review" | "appealed";
   submitted_at: string;
   photo_url: string;
   photo_thumbnail_url: string;
@@ -200,6 +201,9 @@ interface CropSubmission {
   full_name: string | null;
   latitude?: number;
   longitude?: number;
+  is_appealed?: boolean;
+  appeal_reason?: string | null;
+  appealed_at?: string | null;
 }
 
 interface WeatherReading {
@@ -342,7 +346,57 @@ export default function AdminPage() {
   const [loginLoading, setLoginLoading] = useState(false);
 
   // Navigation state
-  const [activeTab, setActiveTab] = useState<"users" | "data-review" | "payments" | "circle" | "agro-dealers" | "mpesa-activation" | "reports" | "jobs" | "analytics">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "data-review" | "payments" | "circle" | "agro-dealers" | "mpesa-activation" | "reports" | "jobs" | "analytics" | "warning" | "alerts" | "admin-mgmt" | "blog">("users");
+
+  // MODULE: ADMIN MANAGEMENT STATE
+  const [adminList, setAdminList] = useState<any[]>([]);
+  const [ipAllowlist, setIpAllowlist] = useState<any[]>([]);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [adminMgmtSubTab, setAdminMgmtSubTab] = useState<"admins" | "ip" | "audit">("admins");
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminName, setNewAdminName] = useState("");
+  const [newAdminRole, setNewAdminRole] = useState("admin");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [newIpCidr, setNewIpCidr] = useState("");
+  const [newIpLabel, setNewIpLabel] = useState("");
+  const [adminMgmtLoading, setAdminMgmtLoading] = useState(false);
+  const [adminMgmtMsg, setAdminMgmtMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [totpSetupData, setTotpSetupData] = useState<{ secret: string; uri: string } | null>(null);
+  const [totpCode, setTotpCode] = useState("");
+
+  // MODULE: BLOG STATE
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [editingPost, setEditingPost] = useState<any | null>(null);
+  const [blogForm, setBlogForm] = useState({ title: "", excerpt: "", body: "", cover_image_url: "", status: "draft", meta_title: "", meta_description: "" });
+  const [blogMsg, setBlogMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [blogLoading, setBlogLoading] = useState(false);
+  const [blogSubTab, setBlogSubTab] = useState<"list" | "editor">("list");
+
+  // MODULE 10: EARLY WARNING SYSTEM STATE
+  const [thresholds, setThresholds] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [editingThreshold, setEditingThreshold] = useState<any | null>(null);
+  const [editLimit, setEditLimit] = useState("");
+  const [editAction, setEditAction] = useState("");
+  const [editOwner, setEditOwner] = useState("");
+  
+  // Test Injector State
+  const [injectMetric, setInjectMetric] = useState("verification_failure_rate");
+  const [injectValue, setInjectValue] = useState("");
+
+  // MODULE 11: FARMER CLIMATE ALERTS STATE
+  const [farmerAlertsHistory, setFarmerAlertsHistory] = useState<any[]>([]);
+  const [alertTarget, setAlertTarget] = useState<"county" | "farmer">("county");
+  const [alertTargetUser, setAlertTargetUser] = useState("");
+  const [alertTargetCounty, setAlertTargetCounty] = useState("Kilifi");
+  const [alertMetric, setAlertMetric] = useState("rainfall");
+  const [alertUnit, setAlertUnit] = useState("mm");
+  const [alertProbability, setAlertProbability] = useState("75");
+  const [alertLowInterval, setAlertLowInterval] = useState("60");
+  const [alertHighInterval, setAlertHighInterval] = useState("80");
+  const [alertConfidence, setAlertConfidence] = useState<"high" | "low">("high");
+  const [alertAction, setAlertAction] = useState("dig drainage channels");
+  const [alertEscalation, setAlertEscalation] = useState("rainfall exceeds 100mm");
 
   // Action feedback flags
   const [actionSuccessMsg, setActionSuccessMsg] = useState("");
@@ -662,6 +716,40 @@ export default function AdminPage() {
           const json = await res.json();
           if (json.success) setQueues(json.queues);
         }
+      } else if (activeTab === "warning") {
+        const tRes = await authenticatedFetch("/api/admin/warning/thresholds");
+        if (tRes) {
+          const json = await tRes.json();
+          if (json.success) setThresholds(json.thresholds || []);
+        }
+        const aRes = await authenticatedFetch("/api/admin/warning/alerts");
+        if (aRes) {
+          const json = await aRes.json();
+          if (json.success) setAlerts(json.alerts || []);
+        }
+      } else if (activeTab === "alerts") {
+        const res = await authenticatedFetch("/api/admin/farmers/alerts");
+        if (res) {
+          const json = await res.json();
+          if (json.success) setFarmerAlertsHistory(json.alerts || []);
+        }
+        const usersRes = await authenticatedFetch(`/api/admin/users?limit=100&role=farmer`);
+        if (usersRes) {
+          const json = await usersRes.json();
+          if (json.success) setUsers(json.users || []);
+        }
+      } else if (activeTab === "admin-mgmt") {
+        const [admRes, ipRes, auditRes] = await Promise.all([
+          authenticatedFetch("/api/admin/management/admins"),
+          authenticatedFetch("/api/admin/management/ip-allowlist"),
+          authenticatedFetch("/api/admin/management/audit-log?limit=50"),
+        ]);
+        if (admRes) { const j = await admRes.json(); if (j.success) setAdminList(j.admins || []); }
+        if (ipRes) { const j = await ipRes.json(); if (j.success) setIpAllowlist(j.entries || []); }
+        if (auditRes) { const j = await auditRes.json(); if (j.success) setAuditLogs(j.logs || []); }
+      } else if (activeTab === "blog") {
+        const res = await authenticatedFetch("/api/admin/blog/");
+        if (res) { const j = await res.json(); if (j.success) setBlogPosts(j.posts || []); }
       }
     } catch (e) {
       console.error("Tab data loading failed:", e);
@@ -1034,6 +1122,125 @@ export default function AdminPage() {
       }
     } catch (err: any) {
       setActionErrorMsg(err.message || "Error completing distribution transaction.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Update Threshold handler
+  const handleUpdateThreshold = async (metric: string) => {
+    setActionLoading(true);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+    try {
+      const res = await authenticatedFetch(`/api/admin/warning/thresholds/${metric}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          thresholdValue: Number(editLimit),
+          protectiveAction: editAction,
+          ownerName: editOwner
+        })
+      });
+      if (res && res.ok) {
+        setActionSuccessMsg(`Successfully updated threshold configuration for ${metric}.`);
+        setEditingThreshold(null);
+        await loadTabData();
+      } else {
+        setActionErrorMsg("Failed to update threshold configuration.");
+      }
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "An error occurred.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Inject Metric Value handler (for tests)
+  const handleInjectMetric = async () => {
+    setActionLoading(true);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+    try {
+      const res = await authenticatedFetch("/api/admin/warning/test-inject", {
+        method: "POST",
+        body: JSON.stringify({
+          metric: injectMetric,
+          value: Number(injectValue)
+        })
+      });
+      if (res && res.ok) {
+        setActionSuccessMsg(`Successfully injected test value ${injectValue} for ${injectMetric}.`);
+        setInjectValue("");
+        await loadTabData();
+      } else {
+        setActionErrorMsg("Failed to inject test metric value.");
+      }
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "An error occurred.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Send Climate Alert handler
+  const handleSendClimateAlert = async () => {
+    setActionLoading(true);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+    try {
+      const payload: any = {
+        options: {
+          metric: alertMetric,
+          unit: alertUnit,
+          probability: Number(alertProbability),
+          credibleInterval: [Number(alertLowInterval), Number(alertHighInterval)],
+          confidence: alertConfidence,
+          action: alertAction,
+          escalation: alertEscalation
+        }
+      };
+      if (alertTarget === "county") {
+        payload.county = alertTargetCounty;
+      } else {
+        payload.userId = alertTargetUser;
+      }
+
+      const res = await authenticatedFetch("/api/admin/farmers/alerts/send", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      if (res && res.ok) {
+        const data = await res.json();
+        setActionSuccessMsg(`Climate Alert successfully dispatched!`);
+        await loadTabData();
+      } else {
+        setActionErrorMsg("Failed to dispatch Climate Alert.");
+      }
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "An error occurred dispatching alert.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Toggle Alert opt-out preference
+  const handleToggleFarmerAlert = async (userId: string, currentStatus: boolean) => {
+    setActionLoading(true);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+    try {
+      const res = await authenticatedFetch(`/api/admin/farmers/${userId}/alerts/toggle`, {
+        method: "PUT",
+        body: JSON.stringify({ enabled: !currentStatus })
+      });
+      if (res && res.ok) {
+        setActionSuccessMsg(`Successfully toggled alerts setting for user.`);
+        await loadTabData();
+      } else {
+        setActionErrorMsg("Failed to toggle alert preference.");
+      }
+    } catch (err: any) {
+      setActionErrorMsg(err.message || "An error occurred.");
     } finally {
       setActionLoading(false);
     }
@@ -1551,7 +1758,11 @@ export default function AdminPage() {
             { id: "mpesa-activation", label: "M-Pesa Activation" },
             { id: "reports", label: "Hedera & Partner Reports" },
             { id: "jobs", label: "Background Workers" },
-            { id: "analytics", label: "Analytics Panel" }
+            { id: "analytics", label: "Analytics Panel" },
+            { id: "warning", label: "Early-Warning System" },
+            { id: "alerts", label: "Farmer Climate Alerts" },
+            { id: "admin-mgmt", label: "🔐 Admin Management" },
+            { id: "blog", label: "📝 Blog" }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1795,6 +2006,11 @@ export default function AdminPage() {
                               {c.ai_detected_issues && (
                                 <div className="text-[9px] text-red-400 bg-red-400/5 px-2 py-1 rounded border border-red-500/10 font-mono mt-1">
                                   Flagged Issues: {JSON.stringify(c.ai_detected_issues)}
+                                </div>
+                              )}
+                              {c.is_appealed && (
+                                <div className="text-[10px] text-purple-400 bg-purple-400/5 px-2 py-1 rounded border border-purple-500/10 font-mono mt-1">
+                                  ⚖️ Appeal Reason: {c.appeal_reason}
                                 </div>
                               )}
                             </div>
@@ -3210,6 +3426,1033 @@ export default function AdminPage() {
                   </table>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === "warning" && (
+            <div className="space-y-6">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-sm font-bold text-white mb-4">Threshold Register & Leading Indicators</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left border-collapse font-mono">
+                    <thead>
+                      <tr className="border-b border-white/10 text-white/40">
+                        <th className="py-3 px-4">Metric</th>
+                        <th className="py-3 px-4 text-right">Live Value</th>
+                        <th className="py-3 px-4 text-right">Threshold</th>
+                        <th className="py-3 px-4 text-center">Status</th>
+                        <th className="py-3 px-4">Protective Action</th>
+                        <th className="py-3 px-4">Owner</th>
+                        <th className="py-3 px-4 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {thresholds.map((t) => (
+                        <tr key={t.metric} className="border-b border-white/5 hover:bg-white/[0.02] text-white/80">
+                          <td className="py-3 px-4 font-bold text-primary">{t.metric}</td>
+                          <td className="py-3 px-4 text-right font-bold text-white">{t.currentValue !== undefined ? t.currentValue.toFixed(4) : "0.00"}</td>
+                          <td className="py-3 px-4 text-right font-bold text-white/70">{t.thresholdValue !== undefined ? t.thresholdValue.toFixed(4) : "0.00"}</td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`px-2.5 py-1 rounded-xl text-[10px] font-bold ${
+                              t.currentStatus === "breached" 
+                                ? "bg-red-500/20 text-red-400 border border-red-500/30" 
+                                : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                            }`}>
+                              {t.currentStatus?.toUpperCase() || "NORMAL"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 max-w-xs truncate text-white/60" title={t.protectiveAction}>{t.protectiveAction}</td>
+                          <td className="py-3 px-4 text-white/70">{t.ownerName}</td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              onClick={() => {
+                                setEditingThreshold(t);
+                                setEditLimit(String(t.thresholdValue));
+                                setEditAction(t.protectiveAction);
+                                setEditOwner(t.ownerName);
+                              }}
+                              className="px-3.5 py-1.5 bg-white/5 hover:bg-white/15 text-white rounded-xl text-[10px] font-bold border border-white/5 transition-all active:scale-95"
+                            >
+                              Edit
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {thresholds.length === 0 && (
+                        <tr>
+                          <td colSpan={7} className="py-4 text-center text-white/40 font-mono">No thresholds configured.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Edit Threshold Form Modal Overlay */}
+              {editingThreshold && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                  <div className="bg-[#0c0c1e] border border-white/10 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                    <h3 className="text-sm font-bold text-white">Edit Threshold: <span className="text-primary font-mono">{editingThreshold.metric}</span></h3>
+                    <div className="space-y-3 text-xs">
+                      <div>
+                        <label className="block text-white/60 mb-1 font-mono">Limit Threshold Value</label>
+                        <input
+                          type="number"
+                          step="0.0001"
+                          value={editLimit}
+                          onChange={(e) => setEditLimit(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-primary/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-white/60 mb-1 font-mono">Protective Action</label>
+                        <input
+                          type="text"
+                          value={editAction}
+                          onChange={(e) => setEditAction(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-white/60 mb-1 font-mono">Named Owner</label>
+                        <input
+                          type="text"
+                          value={editOwner}
+                          onChange={(e) => setEditOwner(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary/50"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 text-xs font-bold pt-2">
+                      <button
+                        onClick={() => setEditingThreshold(null)}
+                        className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleUpdateThreshold(editingThreshold.metric)}
+                        className="px-4 py-2 bg-primary text-white rounded-xl shadow-lg shadow-primary/10 transition-all active:scale-95"
+                      >
+                        Save Configuration
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Simulation Metric Injector */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-sm font-bold text-white mb-4">Simulation Test Metric Injector</h3>
+                <div className="flex flex-wrap gap-4 items-end text-xs">
+                  <div>
+                    <label className="block text-white/60 mb-1 font-mono">Select Metric</label>
+                    <select
+                      value={injectMetric}
+                      onChange={(e) => setInjectMetric(e.target.value)}
+                      className="bg-[#0c0c1e] border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary/50 font-mono"
+                    >
+                      <option value="verification_failure_rate">verification_failure_rate</option>
+                      <option value="airtime_balance">airtime_balance</option>
+                      <option value="queue_backlog">queue_backlog</option>
+                      <option value="mirror_node_lag">mirror_node_lag</option>
+                      <option value="api_error_rate">api_error_rate</option>
+                      <option value="agent_submission_cadence">agent_submission_cadence</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-white/60 mb-1 font-mono">Value to Inject</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="e.g. 0.45"
+                      value={injectValue}
+                      onChange={(e) => setInjectValue(e.target.value)}
+                      className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono w-40 focus:outline-none focus:border-primary/50"
+                    />
+                  </div>
+                  <button
+                    onClick={handleInjectMetric}
+                    className="px-5 py-2.5 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/10 transition-all hover:bg-primary/90 active:scale-95"
+                  >
+                    Inject & Run Detector
+                  </button>
+                </div>
+              </div>
+
+              {/* Authenticated Alerts Log */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-sm font-bold text-white mb-4">Cryptographically Authenticated Alert Logs</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left border-collapse font-mono">
+                    <thead>
+                      <tr className="border-b border-white/10 text-white/40">
+                        <th className="py-3 px-4">Timestamp</th>
+                        <th className="py-3 px-4">Metric</th>
+                        <th className="py-3 px-4 text-right">Threshold</th>
+                        <th className="py-3 px-4 text-right">Value</th>
+                        <th className="py-3 px-4">Alert Message</th>
+                        <th className="py-3 px-4 text-center">Auth Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {alerts.map((a) => (
+                        <tr key={a.id} className="border-b border-white/5 hover:bg-white/[0.02] text-white/80">
+                          <td className="py-3 px-4 text-white/40">{new Date(a.createdAt).toLocaleString()}</td>
+                          <td className="py-3 px-4 text-primary font-bold">{a.metricName}</td>
+                          <td className="py-3 px-4 text-right font-bold text-white/70">{a.thresholdValue.toFixed(2)}</td>
+                          <td className="py-3 px-4 text-right text-red-400 font-bold">{a.currentValue.toFixed(2)}</td>
+                          <td className="py-3 px-4 max-w-sm truncate text-white/60" title={a.message}>{a.message}</td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded text-[9px] font-bold" title={`HMAC: ${a.signature}`}>
+                              ✓ AUTHENTICATED
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      {alerts.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="py-4 text-center text-white/40 font-mono">No warning alerts logged.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "alerts" && (
+            <div className="space-y-6">
+              {/* Alert Composer Form */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 animate-fade-in">
+                <h3 className="text-sm font-bold text-white mb-4">Bayesian Climate Alert Composer</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div>
+                    <label className="block text-white/60 mb-1">Target Type</label>
+                    <select
+                      value={alertTarget}
+                      onChange={(e) => setAlertTarget(e.target.value as any)}
+                      className="w-full bg-[#0c0c1e] border border-white/10 rounded-xl px-4 py-2.5 text-white"
+                    >
+                      <option value="county">By County (Bulk)</option>
+                      <option value="farmer">By Specific Farmer</option>
+                    </select>
+                  </div>
+
+                  {alertTarget === "county" ? (
+                    <div>
+                      <label className="block text-white/60 mb-1 font-mono">Select County</label>
+                      <select
+                        value={alertTargetCounty}
+                        onChange={(e) => setAlertTargetCounty(e.target.value)}
+                        className="w-full bg-[#0c0c1e] border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono"
+                      >
+                        <option value="Kilifi">Kilifi</option>
+                        <option value="Nyeri">Nyeri</option>
+                        <option value="Mombasa">Mombasa</option>
+                        <option value="Nairobi">Nairobi</option>
+                        <option value="Nakuru">Nakuru</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-white/60 mb-1 font-mono">Select Farmer</label>
+                      <select
+                        value={alertTargetUser}
+                        onChange={(e) => setAlertTargetUser(e.target.value)}
+                        className="w-full bg-[#0c0c1e] border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono"
+                      >
+                        <option value="">-- Choose Farmer --</option>
+                        {users.filter(u => u.role === "farmer").map(u => (
+                          <option key={u.id} value={u.id}>{u.full_name} ({u.county || "No County"})</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-white/60 mb-1 font-mono">Climate Metric</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. rainfall, wind, temperature"
+                      value={alertMetric}
+                      onChange={(e) => setAlertMetric(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-white/60 mb-1 font-mono">Unit of Measurement</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. mm, km/h, °C"
+                      value={alertUnit}
+                      onChange={(e) => setAlertUnit(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-white/60 mb-1 font-mono">Bayesian Probability (%)</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 75"
+                      value={alertProbability}
+                      onChange={(e) => setAlertProbability(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-white/60 mb-1 font-mono">Credible Interval: Low Bound</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 60"
+                      value={alertLowInterval}
+                      onChange={(e) => setAlertLowInterval(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-white/60 mb-1 font-mono">Credible Interval: High Bound</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 80"
+                      value={alertHighInterval}
+                      onChange={(e) => setAlertHighInterval(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-white/60 mb-1 font-mono">Model Confidence Level</label>
+                    <select
+                      value={alertConfidence}
+                      onChange={(e) => setAlertConfidence(e.target.value as any)}
+                      className="w-full bg-[#0c0c1e] border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono"
+                    >
+                      <option value="high">High Confidence (Firm Guidance)</option>
+                      <option value="low">Low Confidence (Tentative Guidance)</option>
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-3">
+                    <label className="block text-white/60 mb-1 font-mono">One Clear Protective Action</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. dig drainage channels, harvest early, cover nursery beds"
+                      value={alertAction}
+                      onChange={(e) => setAlertAction(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white"
+                    />
+                  </div>
+
+                  <div className="md:col-span-3">
+                    <label className="block text-white/60 mb-1 font-mono">Escalation Trigger Condition</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. rainfall probability exceeds 90% or wind speeds top 60km/h"
+                      value={alertEscalation}
+                      onChange={(e) => setAlertEscalation(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white"
+                    />
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <button
+                    onClick={handleSendClimateAlert}
+                    className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold shadow-lg shadow-primary/10 transition-all active:scale-95 text-xs"
+                  >
+                    Compose & Dispatch Alert
+                  </button>
+                </div>
+              </div>
+
+              {/* Farmers Settings Table */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-sm font-bold text-white mb-4">Farmer Alerts Preference Settings</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left border-collapse font-mono">
+                    <thead>
+                      <tr className="border-b border-white/10 text-white/40">
+                        <th className="py-3 px-4">Farmer Name</th>
+                        <th className="py-3 px-4">County</th>
+                        <th className="py-3 px-4">Language</th>
+                        <th className="py-3 px-4">Telegram ID</th>
+                        <th className="py-3 px-4 text-center">Alerts Status</th>
+                        <th className="py-3 px-4 text-center">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.filter(u => u.role === "farmer").map((f) => (
+                        <tr key={f.id} className="border-b border-white/5 hover:bg-white/[0.02] text-white/80 animate-fade-in">
+                          <td className="py-3 px-4 font-bold text-white">{f.full_name}</td>
+                          <td className="py-3 px-4 text-white/60">{f.county || "N/A"}</td>
+                          <td className="py-3 px-4 text-white/60">{f.language?.toUpperCase() || "SW"}</td>
+                          <td className="py-3 px-4 text-white/40">{f.telegram_id || "None"}</td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`px-2.5 py-1 rounded-xl text-[10px] font-bold ${
+                              f.alerts_enabled !== false 
+                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" 
+                                : "bg-red-500/20 text-red-400 border border-red-500/30"
+                            }`}>
+                              {f.alerts_enabled !== false ? "ENABLED (OPT-IN)" : "DISABLED (OPT-OUT)"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              onClick={() => handleToggleFarmerAlert(f.id, f.alerts_enabled !== false)}
+                              className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                                f.alerts_enabled !== false 
+                                  ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
+                                  : "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
+                              }`}
+                            >
+                              {f.alerts_enabled !== false ? "Opt-Out" : "Opt-In"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Climate Alerts Log Panel */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-sm font-bold text-white mb-4">Farmers Climate Alerts Logs</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left border-collapse font-mono">
+                    <thead>
+                      <tr className="border-b border-white/10 text-white/40">
+                        <th className="py-3 px-4">Date/Time</th>
+                        <th className="py-3 px-4">Farmer</th>
+                        <th className="py-3 px-4">County</th>
+                        <th className="py-3 px-4">Metric</th>
+                        <th className="py-3 px-4">Confidence</th>
+                        <th className="py-3 px-4">Delivery Status</th>
+                        <th className="py-3 px-4">Message</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {farmerAlertsHistory.map((a) => (
+                        <tr key={a.id} className="border-b border-white/5 hover:bg-white/[0.02] text-white/80 animate-fade-in">
+                          <td className="py-3 px-4 text-white/40">{new Date(a.createdAt).toLocaleString()}</td>
+                          <td className="py-3 px-4 font-bold text-white">{a.farmerName}</td>
+                          <td className="py-3 px-4 text-white/60">{a.county}</td>
+                          <td className="py-3 px-4 text-primary font-bold">{a.metric} ({a.probabilityEstimate}%)</td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              a.confidenceLevel === "high" 
+                                ? "bg-emerald-500/20 text-emerald-400" 
+                                : "bg-yellow-500/20 text-yellow-400"
+                            }`}>
+                              {a.confidenceLevel?.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`px-2.5 py-0.5 rounded-xl text-[9px] font-bold ${
+                              a.status === "sent" 
+                                ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                                : a.status === "rate_limited" 
+                                ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                                : "bg-red-500/20 text-red-400 border border-red-500/30"
+                            }`}>
+                              {a.status?.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 max-w-sm truncate text-white/60" title={a.message}>{a.message}</td>
+                        </tr>
+                      ))}
+                      {farmerAlertsHistory.length === 0 && (
+                        <tr>
+                          <td colSpan={7} className="py-4 text-center text-white/40">No alerts logged yet.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ==================== ADMIN MANAGEMENT TAB ==================== */}
+          {activeTab === "admin-mgmt" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white">Admin Management</h2>
+                <p className="text-xs text-white/40 font-mono">Superadmin access required for mutations</p>
+              </div>
+
+              {adminMgmtMsg && (
+                <div className={`rounded-xl p-3 text-sm font-medium ${adminMgmtMsg.type === "ok" ? "bg-emerald-500/15 text-emerald-300" : "bg-red-500/15 text-red-300"}`}>
+                  {adminMgmtMsg.text}
+                </div>
+              )}
+
+              {/* Sub-tabs */}
+              <div className="flex gap-2 border-b border-white/5 pb-2">
+                {(["admins", "ip", "audit"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setAdminMgmtSubTab(t)}
+                    className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      adminMgmtSubTab === t ? "bg-primary/20 text-primary" : "text-white/40 hover:text-white"
+                    }`}
+                  >
+                    {t === "admins" ? "Admin Users" : t === "ip" ? "IP Allowlist" : "Audit Log"}
+                  </button>
+                ))}
+              </div>
+
+              {/* ---- ADMINS sub-tab ---- */}
+              {adminMgmtSubTab === "admins" && (
+                <div className="space-y-6">
+                  {/* List */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-white/5">
+                          <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Name / Email</th>
+                          <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Role</th>
+                          <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Status</th>
+                          <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">2FA</th>
+                          <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Last Login</th>
+                          <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {adminList.map((adm) => (
+                          <tr key={adm.id} className="border-b border-white/5 hover:bg-white/3">
+                            <td className="py-3 px-3">
+                              <p className="font-semibold text-white">{adm.name}</p>
+                              <p className="text-white/40 font-mono">{adm.email}</p>
+                            </td>
+                            <td className="py-3 px-3">
+                              <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase ${
+                                adm.role === "superadmin" ? "bg-purple-500/20 text-purple-400" :
+                                adm.role === "admin" ? "bg-blue-500/20 text-blue-400" :
+                                "bg-white/10 text-white/60"
+                              }`}>{adm.role}</span>
+                            </td>
+                            <td className="py-3 px-3">
+                              <span className={`text-[10px] font-bold uppercase ${
+                                adm.status === "active" ? "text-emerald-400" : "text-red-400"
+                              }`}>{adm.status}</span>
+                            </td>
+                            <td className="py-3 px-3">
+                              <span className={`text-[10px] font-bold ${adm.totp_enabled ? "text-emerald-400" : "text-white/30"}`}>
+                                {adm.totp_enabled ? "ON" : "OFF"}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-white/40 font-mono">
+                              {adm.last_login_at ? new Date(adm.last_login_at).toLocaleString() : "Never"}
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={async () => {
+                                    if (!confirm(`Toggle status for ${adm.email}?`)) return;
+                                    setAdminMgmtLoading(true);
+                                    const newStatus = adm.status === "active" ? "disabled" : "active";
+                                    const r = await authenticatedFetch(`/api/admin/management/admins/${adm.id}/status`, {
+                                      method: "PATCH",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ status: newStatus }),
+                                    });
+                                    const j = r ? await r.json() : null;
+                                    setAdminMgmtLoading(false);
+                                    setAdminMgmtMsg(j?.success ? { type: "ok", text: `Admin ${newStatus}.` } : { type: "err", text: j?.error?.message || "Failed." });
+                                    if (j?.success) loadTabData();
+                                  }}
+                                  className={`px-2 py-1 rounded-lg text-[10px] font-bold ${
+                                    adm.status === "active" ? "bg-red-500/15 text-red-400 hover:bg-red-500/30" : "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/30"
+                                  }`}
+                                >
+                                  {adm.status === "active" ? "Disable" : "Enable"}
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    if (!confirm(`Reset password for ${adm.email}?`)) return;
+                                    setAdminMgmtLoading(true);
+                                    const r = await authenticatedFetch(`/api/admin/management/admins/${adm.id}/reset-password`, {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({}),
+                                    });
+                                    const j = r ? await r.json() : null;
+                                    setAdminMgmtLoading(false);
+                                    if (j?.success) {
+                                      setAdminMgmtMsg({ type: "ok", text: `Temporary password: ${j.temporaryPassword} — share securely and delete this message.` });
+                                    } else {
+                                      setAdminMgmtMsg({ type: "err", text: j?.error?.message || "Failed." });
+                                    }
+                                  }}
+                                  className="px-2 py-1 rounded-lg text-[10px] font-bold bg-yellow-500/15 text-yellow-400 hover:bg-yellow-500/30"
+                                >
+                                  Reset Pwd
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {adminList.length === 0 && (
+                          <tr><td colSpan={6} className="py-4 text-center text-white/30">No admin accounts found.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Create Admin Form */}
+                  <div className="bg-white/3 border border-white/5 rounded-2xl p-5 space-y-4">
+                    <h3 className="text-sm font-bold text-white">Create New Admin</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] uppercase font-bold text-white/40">Email</label>
+                        <input value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)}
+                          className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50"
+                          placeholder="admin@diraafrica.org" type="email" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase font-bold text-white/40">Full Name</label>
+                        <input value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)}
+                          className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50"
+                          placeholder="Jane Mwangi" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase font-bold text-white/40">Role</label>
+                        <select value={newAdminRole} onChange={(e) => setNewAdminRole(e.target.value)}
+                          className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50">
+                          <option value="admin">admin</option>
+                          <option value="editor">editor</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase font-bold text-white/40">Temporary Password</label>
+                        <input value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)}
+                          className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50"
+                          placeholder="Min 12 chars, mixed" type="password" />
+                      </div>
+                    </div>
+                    <button
+                      disabled={adminMgmtLoading}
+                      onClick={async () => {
+                        setAdminMgmtLoading(true);
+                        const r = await authenticatedFetch("/api/admin/management/admins", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ email: newAdminEmail, name: newAdminName, role: newAdminRole, password: newAdminPassword }),
+                        });
+                        const j = r ? await r.json() : null;
+                        setAdminMgmtLoading(false);
+                        if (j?.success) {
+                          setAdminMgmtMsg({ type: "ok", text: `Admin '${j.admin.email}' created. They must change their password on first login.` });
+                          setNewAdminEmail(""); setNewAdminName(""); setNewAdminPassword("");
+                          loadTabData();
+                        } else {
+                          setAdminMgmtMsg({ type: "err", text: j?.error?.message || "Failed." });
+                        }
+                      }}
+                      className="px-5 py-2 bg-primary hover:bg-primary/80 text-white font-bold text-xs rounded-xl disabled:opacity-50"
+                    >
+                      {adminMgmtLoading ? "Creating…" : "Create Admin"}
+                    </button>
+                  </div>
+
+                  {/* TOTP Setup */}
+                  <div className="bg-white/3 border border-white/5 rounded-2xl p-5 space-y-4">
+                    <h3 className="text-sm font-bold text-white">My 2-FA (TOTP) Setup</h3>
+                    <p className="text-xs text-white/40">Set up or refresh your TOTP authenticator. Scan the URI with Google Authenticator or Authy.</p>
+                    {!totpSetupData ? (
+                      <button
+                        onClick={async () => {
+                          const r = await authenticatedFetch("/api/admin/management/me/totp/setup", { method: "POST" });
+                          const j = r ? await r.json() : null;
+                          if (j?.success) setTotpSetupData({ secret: j.secret, uri: j.uri });
+                          else setAdminMgmtMsg({ type: "err", text: "Failed to initialize TOTP." });
+                        }}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl"
+                      >Initialize TOTP</button>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-xs font-mono bg-black/30 rounded-xl p-3 break-all text-emerald-300">
+                          Secret: {totpSetupData.secret}
+                        </p>
+                        <p className="text-[10px] text-white/40 break-all">{totpSetupData.uri}</p>
+                        <div className="flex gap-2">
+                          <input value={totpCode} onChange={(e) => setTotpCode(e.target.value)}
+                            placeholder="6-digit code from app" maxLength={6}
+                            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50 w-40" />
+                          <button
+                            onClick={async () => {
+                              const r = await authenticatedFetch("/api/admin/management/me/totp/verify", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ code: totpCode }),
+                              });
+                              const j = r ? await r.json() : null;
+                              if (j?.success) {
+                                setAdminMgmtMsg({ type: "ok", text: "TOTP enabled successfully! ✓" });
+                                setTotpSetupData(null); setTotpCode("");
+                              } else {
+                                setAdminMgmtMsg({ type: "err", text: j?.error?.message || "Verification failed." });
+                              }
+                            }}
+                            className="px-4 py-2 bg-primary hover:bg-primary/80 text-white font-bold text-xs rounded-xl"
+                          >Verify & Enable</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ---- IP ALLOWLIST sub-tab ---- */}
+              {adminMgmtSubTab === "ip" && (
+                <div className="space-y-6">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-white/5">
+                          <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Label</th>
+                          <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">CIDR (Masked)</th>
+                          <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Status</th>
+                          <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Added</th>
+                          <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ipAllowlist.map((ip) => (
+                          <tr key={ip.id} className="border-b border-white/5 hover:bg-white/3">
+                            <td className="py-3 px-3 font-semibold text-white">{ip.label}</td>
+                            <td className="py-3 px-3 font-mono text-white/60">{ip.cidr}</td>
+                            <td className="py-3 px-3">
+                              <span className={`text-[10px] font-bold uppercase ${ip.active ? "text-emerald-400" : "text-red-400"}`}>
+                                {ip.active ? "Active" : "Inactive"}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-white/40 font-mono">
+                              {new Date(ip.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={async () => {
+                                    const r = await authenticatedFetch(`/api/admin/management/ip-allowlist/reveal/${ip.id}`, { method: "POST" });
+                                    const j = r ? await r.json() : null;
+                                    if (j?.success) alert(`Full CIDR: ${j.cidr}`);
+                                    else setAdminMgmtMsg({ type: "err", text: j?.error?.message || "Reveal failed." });
+                                  }}
+                                  className="px-2 py-1 rounded-lg text-[10px] font-bold bg-white/10 text-white/60 hover:bg-white/20"
+                                >Reveal</button>
+                                <button
+                                  onClick={async () => {
+                                    if (!confirm(`Remove IP allowlist entry '${ip.label}'?`)) return;
+                                    const r = await authenticatedFetch(`/api/admin/management/ip-allowlist/${ip.id}`, { method: "DELETE" });
+                                    const j = r ? await r.json() : null;
+                                    if (j?.success) { setAdminMgmtMsg({ type: "ok", text: "Entry removed." }); loadTabData(); }
+                                    else setAdminMgmtMsg({ type: "err", text: j?.error?.message || "Failed." });
+                                  }}
+                                  className="px-2 py-1 rounded-lg text-[10px] font-bold bg-red-500/15 text-red-400 hover:bg-red-500/30"
+                                >Remove</button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {ipAllowlist.length === 0 && (
+                          <tr><td colSpan={5} className="py-4 text-center text-white/30">No allowlist entries. All IPs allowed by default.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Add IP Form */}
+                  <div className="bg-white/3 border border-white/5 rounded-2xl p-5 space-y-4">
+                    <h3 className="text-sm font-bold text-white">Add IP / CIDR</h3>
+                    <p className="text-xs text-white/40">Once any entry is added, ALL admin routes require a matching IP. Add your IP first.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] uppercase font-bold text-white/40">CIDR</label>
+                        <input value={newIpCidr} onChange={(e) => setNewIpCidr(e.target.value)}
+                          className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50"
+                          placeholder="203.0.113.0/24" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase font-bold text-white/40">Label</label>
+                        <input value={newIpLabel} onChange={(e) => setNewIpLabel(e.target.value)}
+                          className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50"
+                          placeholder="Nairobi Office" />
+                      </div>
+                    </div>
+                    <button
+                      disabled={adminMgmtLoading}
+                      onClick={async () => {
+                        setAdminMgmtLoading(true);
+                        const r = await authenticatedFetch("/api/admin/management/ip-allowlist", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ cidr: newIpCidr, label: newIpLabel }),
+                        });
+                        const j = r ? await r.json() : null;
+                        setAdminMgmtLoading(false);
+                        if (j?.requireConfirmation) {
+                          if (confirm(j.message)) {
+                            const r2 = await authenticatedFetch("/api/admin/management/ip-allowlist", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ cidr: newIpCidr, label: newIpLabel, confirmed: true }),
+                            });
+                            const j2 = r2 ? await r2.json() : null;
+                            if (j2?.success) { setAdminMgmtMsg({ type: "ok", text: "IP added." }); setNewIpCidr(""); setNewIpLabel(""); loadTabData(); }
+                            else setAdminMgmtMsg({ type: "err", text: j2?.error?.message || "Failed." });
+                          }
+                        } else if (j?.success) {
+                          setAdminMgmtMsg({ type: "ok", text: "IP entry added." });
+                          setNewIpCidr(""); setNewIpLabel("");
+                          loadTabData();
+                        } else {
+                          setAdminMgmtMsg({ type: "err", text: j?.error?.message || "Failed." });
+                        }
+                      }}
+                      className="px-5 py-2 bg-primary hover:bg-primary/80 text-white font-bold text-xs rounded-xl disabled:opacity-50"
+                    >
+                      {adminMgmtLoading ? "Adding…" : "Add CIDR"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ---- AUDIT LOG sub-tab ---- */}
+              {adminMgmtSubTab === "audit" && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-white/5">
+                        <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">When</th>
+                        <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Actor</th>
+                        <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Action</th>
+                        <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">Target</th>
+                        <th className="text-left py-2 px-3 text-white/40 font-mono uppercase">IP</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditLogs.map((log) => (
+                        <tr key={log.id} className="border-b border-white/5 hover:bg-white/3">
+                          <td className="py-2 px-3 text-white/40 font-mono">{new Date(log.created_at).toLocaleString()}</td>
+                          <td className="py-2 px-3">
+                            <p className="text-white font-semibold">{log.actor_name}</p>
+                            <p className="text-white/40">{log.actor_email}</p>
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className="px-2 py-0.5 rounded-lg bg-white/5 text-white/70 font-mono text-[10px]">{log.action}</span>
+                          </td>
+                          <td className="py-2 px-3 text-white/60 font-mono max-w-xs truncate" title={log.target}>{log.target}</td>
+                          <td className="py-2 px-3 text-white/40 font-mono">{log.ip}</td>
+                        </tr>
+                      ))}
+                      {auditLogs.length === 0 && (
+                        <tr><td colSpan={5} className="py-4 text-center text-white/30">No audit events recorded.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ==================== BLOG TAB ==================== */}
+          {activeTab === "blog" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white">Blog Publishing</h2>
+                <div className="flex gap-2">
+                  <button onClick={() => { setBlogSubTab("list"); setEditingPost(null); setBlogForm({ title: "", excerpt: "", body: "", cover_image_url: "", status: "draft", meta_title: "", meta_description: "" }); }}
+                    className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${blogSubTab === "list" ? "bg-primary/20 text-primary" : "text-white/40 hover:text-white"}`}
+                  >All Posts</button>
+                  <button onClick={() => { setBlogSubTab("editor"); setEditingPost(null); setBlogForm({ title: "", excerpt: "", body: "", cover_image_url: "", status: "draft", meta_title: "", meta_description: "" }); }}
+                    className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${blogSubTab === "editor" ? "bg-primary/20 text-primary" : "text-white/40 hover:text-white"}`}
+                  >+ New Post</button>
+                </div>
+              </div>
+
+              {blogMsg && (
+                <div className={`rounded-xl p-3 text-sm font-medium ${blogMsg.type === "ok" ? "bg-emerald-500/15 text-emerald-300" : "bg-red-500/15 text-red-300"}`}>
+                  {blogMsg.text}
+                </div>
+              )}
+
+              {/* ---- Post List ---- */}
+              {blogSubTab === "list" && (
+                <div className="space-y-3">
+                  {blogPosts.map((post) => (
+                    <div key={post.id} className="flex items-center justify-between bg-white/3 border border-white/5 rounded-2xl p-4 gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase ${
+                            post.status === "published" ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-white/40"
+                          }`}>{post.status}</span>
+                          {post.published_at && (
+                            <span className="text-[10px] text-white/30 font-mono">{new Date(post.published_at).toLocaleDateString()}</span>
+                          )}
+                        </div>
+                        <p className="font-semibold text-white text-sm truncate">{post.title}</p>
+                        <p className="text-xs text-white/40 truncate">{post.excerpt}</p>
+                        <p className="text-[10px] text-white/25 font-mono mt-0.5">/{post.slug} · by {post.author_name}</p>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            setEditingPost(post);
+                            setBlogForm({
+                              title: post.title,
+                              excerpt: post.excerpt || "",
+                              body: post.body || "",
+                              cover_image_url: post.cover_image_url || "",
+                              status: post.status,
+                              meta_title: post.meta_title || "",
+                              meta_description: post.meta_description || "",
+                            });
+                            setBlogSubTab("editor");
+                          }}
+                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl"
+                        >Edit</button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Delete post '${post.title}'? This cannot be undone.`)) return;
+                            setBlogLoading(true);
+                            const r = await authenticatedFetch(`/api/admin/blog/${post.id}`, { method: "DELETE" });
+                            const j = r ? await r.json() : null;
+                            setBlogLoading(false);
+                            if (j?.success) { setBlogMsg({ type: "ok", text: "Post deleted." }); loadTabData(); }
+                            else setBlogMsg({ type: "err", text: j?.error?.message || "Failed to delete." });
+                          }}
+                          className="px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-400 text-xs font-bold rounded-xl"
+                        >Delete</button>
+                      </div>
+                    </div>
+                  ))}
+                  {blogPosts.length === 0 && (
+                    <div className="text-center py-12 text-white/30">
+                      <p className="text-lg">No blog posts yet.</p>
+                      <p className="text-xs mt-1">Click &ldquo;+ New Post&rdquo; to write your first article.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ---- Post Editor ---- */}
+              {blogSubTab === "editor" && (
+                <div className="space-y-5">
+                  {editingPost && (
+                    <p className="text-xs text-white/40 font-mono">Editing: <span className="text-white">{editingPost.slug}</span></p>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/40">Title *</label>
+                      <input value={blogForm.title} onChange={(e) => setBlogForm((f) => ({ ...f, title: e.target.value }))}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50"
+                        placeholder="How Dira Helps Kenyan Farmers" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/40">Status</label>
+                      <select value={blogForm.status} onChange={(e) => setBlogForm((f) => ({ ...f, status: e.target.value }))}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50">
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-[10px] uppercase font-bold text-white/40">Excerpt *</label>
+                      <textarea value={blogForm.excerpt} onChange={(e) => setBlogForm((f) => ({ ...f, excerpt: e.target.value }))}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50 h-16"
+                        placeholder="A short summary shown in listings and search results…" />
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-[10px] uppercase font-bold text-white/40">Body (Markdown) *</label>
+                      <textarea value={blogForm.body} onChange={(e) => setBlogForm((f) => ({ ...f, body: e.target.value }))}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50 h-64 font-mono"
+                        placeholder="Write your article in Markdown…" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/40">Cover Image URL</label>
+                      <input value={blogForm.cover_image_url} onChange={(e) => setBlogForm((f) => ({ ...f, cover_image_url: e.target.value }))}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50"
+                        placeholder="https://photos.diraafrica.org/blog-covers/…" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/40">Upload Cover Image</label>
+                      <input type="file" accept="image/jpeg,image/png,image/webp"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          setBlogLoading(true);
+                          try {
+                            const r = await fetch(`${API_URL}/api/admin/blog/upload-cover`, {
+                              method: "POST",
+                              headers: token ? { "Authorization": `Bearer ${token}` } : {},
+                              credentials: "include",
+                              body: formData,
+                            });
+                            const j = await r.json();
+                            if (j.success) setBlogForm((f) => ({ ...f, cover_image_url: j.url }));
+                            else setBlogMsg({ type: "err", text: j.error?.message || "Upload failed." });
+                          } catch { setBlogMsg({ type: "err", text: "Upload failed." }); }
+                          setBlogLoading(false);
+                        }}
+                        className="w-full mt-1 text-xs text-white/50 file:bg-white/10 file:text-white file:text-xs file:rounded-lg file:border-0 file:px-3 file:py-1 file:cursor-pointer" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/40">SEO Title</label>
+                      <input value={blogForm.meta_title} onChange={(e) => setBlogForm((f) => ({ ...f, meta_title: e.target.value }))}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50"
+                        placeholder="Optional — defaults to title" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-bold text-white/40">SEO Description</label>
+                      <input value={blogForm.meta_description} onChange={(e) => setBlogForm((f) => ({ ...f, meta_description: e.target.value }))}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50"
+                        placeholder="150 chars max for search previews" />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      disabled={blogLoading}
+                      onClick={async () => {
+                        setBlogLoading(true);
+                        const url = editingPost ? `/api/admin/blog/${editingPost.id}` : "/api/admin/blog/";
+                        const method = editingPost ? "PUT" : "POST";
+                        const r = await authenticatedFetch(url, {
+                          method,
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(blogForm),
+                        });
+                        const j = r ? await r.json() : null;
+                        setBlogLoading(false);
+                        if (j?.success) {
+                          setBlogMsg({ type: "ok", text: editingPost ? "Post updated!" : `Post '${j.post.slug}' created!` });
+                          setEditingPost(j.post);
+                          loadTabData();
+                        } else {
+                          setBlogMsg({ type: "err", text: j?.error?.message || "Failed to save post." });
+                        }
+                      }}
+                      className="px-6 py-2 bg-primary hover:bg-primary/80 text-white font-bold text-sm rounded-xl disabled:opacity-50"
+                    >
+                      {blogLoading ? "Saving…" : editingPost ? "Update Post" : "Create Post"}
+                    </button>
+                    <button
+                      onClick={() => { setBlogSubTab("list"); setEditingPost(null); setBlogMsg(null); }}
+                      className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm rounded-xl"
+                    >Cancel</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

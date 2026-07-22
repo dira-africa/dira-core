@@ -15,16 +15,16 @@
  */
 
 import type { Metadata } from "next";
-import ForPartnersClient from "./ForPartnersClient";
+import TermsClient from "./TermsClient";
 
 export const metadata: Metadata = {
-  title: "For Partners — Dira Africa",
-  description: "Join Dira Africa's partner network. Learn how agro-dealers, community coordinators, and organizations sponsor climate data sensing.",
+  title: "Terms of Use — Dira Africa",
+  description: "Read the Terms of Service for Dira Africa weather sensing network and Hedera token rewards.",
   alternates: {
-    canonical: "/for-partners",
+    canonical: "/terms",
   },
 };
 
 export default function Page() {
-  return <ForPartnersClient />;
+  return <TermsClient />;
 }

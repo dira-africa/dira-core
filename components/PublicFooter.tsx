@@ -45,7 +45,7 @@ export default function PublicFooter() {
           {/* Links Quick */}
           <div>
             <h3 className="text-white font-bold text-sm mb-4">
-              {locale === "sw" ? "Ukurasa" : "Pages"}
+              {locale === "sw" ? "Kurasa" : "Pages"}
             </h3>
             <ul className="space-y-2 text-xs">
               <li>
@@ -59,8 +59,18 @@ export default function PublicFooter() {
                 </Link>
               </li>
               <li>
+                <Link href="/for-agents" onClick={() => trackEvent("footer_click", { target: "for-agents" })} className="hover:text-white transition-colors">
+                  {locale === "sw" ? "Kwa Maajenti" : "For Agents"}
+                </Link>
+              </li>
+              <li>
                 <Link href="/for-partners" onClick={() => trackEvent("footer_click", { target: "for-partners" })} className="hover:text-white transition-colors">
                   {locale === "sw" ? "Kwa Washirika" : "For Partners"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/impact" onClick={() => trackEvent("footer_click", { target: "impact" })} className="hover:text-white transition-colors">
+                  {locale === "sw" ? "Matokeo yetu" : "Our Impact"}
                 </Link>
               </li>
               <li>
@@ -74,19 +84,23 @@ export default function PublicFooter() {
           {/* Links Tech */}
           <div>
             <h3 className="text-white font-bold text-sm mb-4">
-              {locale === "sw" ? "Teknolojia" : "Technology"}
+              {locale === "sw" ? "Teknolojia & Msaada" : "Technology & Support"}
             </h3>
             <ul className="space-y-2 text-xs font-mono">
               <li>
-                <Link href="/public" onClick={() => trackEvent("footer_click", { target: "verification" })} className="hover:text-white transition-colors text-xs font-sans">
+                <Link href="/verification" onClick={() => trackEvent("footer_click", { target: "verification" })} className="hover:text-white transition-colors text-xs font-sans">
                   {locale === "sw" ? "Uthibitishaji wa Hedera" : "Hedera Verification"}
                 </Link>
               </li>
               <li>
-                <span className="opacity-75">HCS Topic: 0.0.9544926</span>
+                <Link href="/faq" onClick={() => trackEvent("footer_click", { target: "faq" })} className="hover:text-white transition-colors text-xs font-sans">
+                  {locale === "sw" ? "Maswali ya Kawaida" : "FAQs"}
+                </Link>
               </li>
               <li>
-                <span className="opacity-75">HTS Token: 0.0.9544938</span>
+                <Link href="/contact" onClick={() => trackEvent("footer_click", { target: "contact" })} className="hover:text-white transition-colors text-xs font-sans">
+                  {locale === "sw" ? "Wasiliana Nasi" : "Contact Us"}
+                </Link>
               </li>
               <li>
                 <a href="https://github.com/dira-africa" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors text-xs font-sans">
@@ -107,7 +121,17 @@ export default function PublicFooter() {
                   {locale === "sw" ? "Ulinzi wa Data & Sera" : "Data Protection & Privacy"}
                 </Link>
               </li>
-              <li className="text-[10px] uppercase text-emerald-400 font-bold tracking-wider">
+              <li>
+                <Link href="/terms" onClick={() => trackEvent("footer_click", { target: "terms" })} className="hover:text-white transition-colors">
+                  {locale === "sw" ? "Masharti ya Matumizi" : "Terms of Use"}
+                </Link>
+              </li>
+              <li className="text-[10px] text-white/40 leading-normal">
+                Email: hello@dira.africa<br />
+                Phone: +254 700 000 000<br />
+                Nairobi, Kenya
+              </li>
+              <li className="text-[10px] uppercase text-emerald-400 font-bold tracking-wider pt-2">
                 Apache 2.0 License
               </li>
             </ul>
